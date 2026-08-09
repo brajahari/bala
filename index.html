@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Read-Aloud Project Index</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        header p {
+            font-size: 14px;
+            opacity: 0.95;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .file-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .file-item:hover {
+            background: #e9ecef;
+            transform: translateX(4px);
+        }
+
+        .file-icon {
+            font-size: 24px;
+            min-width: 24px;
+        }
+
+        .file-info {
+            flex: 1;
+        }
+
+        .file-name {
+            font-weight: 600;
+            color: #212529;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .file-desc {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            background: #667eea;
+            color: white;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .readme-item {
+            background: #fff3cd;
+        }
+
+        .html-item {
+            background: #d1ecf1;
+        }
+
+        footer {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+            font-size: 12px;
+            color: #6c757d;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎙️ Read-Aloud Project</h1>
+            <p>Index of resources and documentation</p>
+        </header>
+
+        <div class="content">
+            <div class="file-list">
+                <a href="README.md" class="file-item readme-item">
+                    <span class="file-icon">📄</span>
+                    <div class="file-info">
+                        <span class="file-name">README.md</span>
+                        <span class="file-desc">Project documentation and setup instructions</span>
+                    </div>
+                    <span class="status-badge">Doc</span>
+                </a>
+
+                <a href="read-aloud.html" class="file-item html-item">
+                    <span class="file-icon">🔊</span>
+                    <div class="file-info">
+                        <span class="file-name">read-aloud.html</span>
+                        <span class="file-desc">Main read-aloud application interface</span>
+                    </div>
+                    <span class="status-badge">App</span>
+                </a>
+
+                <a href="VoiceSum.html" class="file-item html-item">
+                    <span class="file-icon">📝</span>
+                    <div class="file-info">
+                        <span class="file-name">VoiceSum.html</span>
+                        <span class="file-desc">Voice summarization tool</span>
+                    </div>
+                    <span class="status-badge">App</span>
+                </a>
+            </div>
+        </div>
+
+        <footer>
+            <p>Last updated: Read-Aloud Update • Maintained by brajahari</p>
+        </footer>
+    </div>
+</body>
+</html>
