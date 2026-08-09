@@ -291,7 +291,10 @@ else synth.onvoiceschanged = loadVoices;
    Every speak() bumps `gen`, so those stale callbacks recognise they're dead
    and stay quiet — otherwise each one advances a sentence and the whole thing
    runs away down the page. */
-var gen = 0;
+var gen = 0, lastKick = 0, retries = 0;
+
+/* Android's speech engine differs enough to need its own handling. */
+var MOBILE = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "");
 
 function speak(i){
   var mine = ++gen;
@@ -308,24 +311,43 @@ function speak(i){
   var v = voices[Number(voiceSel.value)];
   if (v){ u.voice = v; u.lang = v.lang; }
   u.rate = Number(rate.value);
-  function advance(){ if (playing && mine === gen) speak(idx+1); }
+  u.onstart = function(){ if (mine === gen) retries = 0; };
+  function advance(){ if (playing && mine === gen){ retries = 0; speak(idx+1); } }
   u.onend = advance;
   u.onerror = advance;
   mark();
   scrollTo(i);
-  synth.speak(u);
+  lastKick = Date.now();
+  /* Android silently discards an utterance queued in the same tick as cancel(),
+     so let the cancel settle first. */
+  if (MOBILE) setTimeout(function(){ if (playing && mine === gen) synth.speak(u); }, 120);
+  else synth.speak(u);
+}
+
+/* Android also just stops sometimes — no end event, no error, nothing.
+   Poll for that silence and pick the reading back up. */
+function watch(){
+  if (!playing || document.hidden) return;
+  if (synth.speaking || synth.pending || synth.paused) return;
+  if (Date.now() - lastKick < 3000) return;      // a slow engine is still waking up
+  if (retries++ < 2) speak(idx);                 // retry this sentence
+  else { retries = 0; speak(idx+1); }            // it refuses — move on
 }
 
 function start(from){
   if (!sentences.length) return;
   if (typeof from === "number") idx = from;   // otherwise: from wherever the cursor sits
   playing = true;
+  retries = 0;
   document.body.classList.remove("idle");
   playBtn.textContent = "Pause";
   clearInterval(keepAlive);
   keepAlive = setInterval(function(){
-    if (synth.speaking && !synth.paused){ synth.pause(); synth.resume(); }
-  }, 9000);
+    /* The pause/resume trick keeps desktop Chrome from cutting out at ~15s.
+       On Android it does the opposite — pause() there is a one-way door. */
+    if (!MOBILE && synth.speaking && !synth.paused){ synth.pause(); synth.resume(); }
+    watch();
+  }, MOBILE ? 1200 : 9000);
   speak(idx);
 }
 
