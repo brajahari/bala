@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Reader</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gentium+Book+Plus:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#15171F; --fg:#DDD7CA; --live:#E3A73B; --teal:#5C8A81;
+  --rule:rgba(221,215,202,.16); --panel:rgba(221,215,202,.05); --dim:.36;
+}
+html[data-theme="day"]{
+  --bg:#E9E7DF; --fg:#23252E; --live:#9C6408; --teal:#35635A;
+  --rule:rgba(35,37,46,.16); --panel:rgba(35,37,46,.04); --dim:.4;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--bg); color:var(--fg);
+  font-family:"Gentium Book Plus",Georgia,"Times New Roman",serif;
+  font-size:20px; line-height:1.75; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:40rem;margin:0 auto;padding:0 1.25rem 8rem}
+
+/* toolbar */
+.bar{
+  position:sticky; top:0; z-index:20; background:var(--bg);
+  border-bottom:1px solid var(--rule);
+  margin:0 -1.25rem; padding:.7rem 1.25rem;
+  display:flex; gap:.55rem; align-items:center; flex-wrap:wrap;
+}
+button,select{
+  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.78rem;
+  color:var(--fg); background:transparent; border:1px solid var(--rule);
+  border-radius:2px; padding:.5rem .7rem; cursor:pointer;
+}
+button:hover,select:hover{border-color:var(--teal)}
+button:focus-visible,select:focus-visible,textarea:focus-visible,.s:focus-visible{
+  outline:2px solid var(--live); outline-offset:2px;
+}
+#play{background:var(--fg);color:var(--bg);border-color:var(--fg);font-weight:500;min-width:6rem}
+select{max-width:10rem}
+.rate{display:flex;align-items:center;gap:.4rem;font-family:"IBM Plex Mono",monospace;font-size:.72rem;color:var(--teal)}
+input[type=range]{width:5rem;accent-color:var(--teal)}
+.count{font-family:"IBM Plex Mono",monospace;font-size:.72rem;color:var(--teal);margin-left:auto}
+
+/* paste view */
+#pasteView{padding-top:2.5rem}
+#pasteView h1{
+  font-family:"IBM Plex Mono",monospace; font-weight:500; font-size:.7rem;
+  letter-spacing:.2em; text-transform:uppercase; color:var(--teal); margin:0 0 1rem;
+}
+textarea{
+  width:100%; min-height:18rem; resize:vertical;
+  background:var(--panel); color:var(--fg);
+  border:1px solid var(--rule); border-radius:2px; padding:1rem;
+  font-family:inherit; font-size:1rem; line-height:1.6;
+}
+textarea::placeholder{color:var(--fg);opacity:.3}
+.actions{display:flex;gap:.6rem;margin-top:.9rem}
+
+/* reading view */
+#text{margin-top:2.5rem}
+#text p{margin:0 0 1.4rem}
+.s{opacity:var(--dim);transition:opacity .3s ease;cursor:text;border-radius:2px}
+.s:hover{opacity:.75}
+body.idle .s{opacity:1}
+.s.done{opacity:calc(var(--dim) + .2)}
+
+/* the cursor — where reading is, or where it will start */
+.s.cursor{
+  opacity:1;
+  box-shadow:-.7rem 0 0 -.62rem var(--teal);
+}
+.s.cursor.live{
+  color:var(--live);
+  box-shadow:-.7rem 0 0 -.62rem var(--live);
+}
+body.idle .s.cursor{background:var(--panel)}
+
+.hint{font-family:"IBM Plex Mono",monospace;font-size:.7rem;color:var(--teal);margin-top:1.8rem;line-height:1.9}
+kbd{border:1px solid var(--rule);border-radius:2px;padding:.05rem .3rem}
+.hidden{display:none}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+@media(max-width:520px){body{font-size:18px}.count{width:100%;margin-left:0;order:9}}
+</style>
+</head>
+<body class="idle">
+
+<div class="wrap">
+
+  <div class="bar hidden" id="bar">
+    <button id="play">Read</button>
+    <button id="prev" title="Previous sentence">&larr;</button>
+    <button id="next" title="Next sentence">&rarr;</button>
+    <select id="voice" aria-label="Voice"></select>
+    <label class="rate">speed
+      <input type="range" id="rate" min="0.6" max="1.5" step="0.05" value="0.95" aria-label="Speed">
+      <span id="rateVal">0.95</span>
+    </label>
+    <button id="edit">New text</button>
+    <button id="theme" title="Light or dark">&#9788;</button>
+    <span class="count" id="count"></span>
+  </div>
+
+  <section id="pasteView">
+    <h1>Paste text, then read it aloud</h1>
+    <textarea id="input" placeholder="Paste here&#8230;" spellcheck="false"></textarea>
+    <div class="actions">
+      <button id="load">Read this</button>
+      <button id="clear">Clear</button>
+    </div>
+    <p class="hint">
+      Click a sentence to put the cursor there. Reading starts at the cursor.<br>
+      The cursor follows along as it reads.<br>
+      <kbd>space</kbd> play or pause &nbsp;·&nbsp; <kbd>&larr;</kbd> <kbd>&rarr;</kbd> move the cursor
+    </p>
+  </section>
+
+  <article id="text"></article>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ─── Pronunciation. Left: what's written. Right: what to say.
+       Add your own lines whenever a word comes out wrong. ─── */
+var SAY = [
+  [/Bhagavad[-\s]?g(ī|i)t(ā|a)/gi, "Bhagavad Geeta"],
+  [/Śr(ī|i)mad[-\s]?Bh(ā|a)gavatam/gi, "Shreemad Bhaagavatam"],
+  [/K(ṛ|r)(ṣ|s)(ṇ|n)a/gi, "Krishna"],
+  [/Caitanya/gi, "Chaitanya"],
+  [/Vi(ṣ|s)(ṇ|n)u/gi, "Vishnu"],
+  [/Śr(ī|i)la/gi, "Shreela"],
+  [/Śr(ī|i)/gi, "Shree"],
+  [/Prabhup(ā|a)da/gi, "Prabhupaada"],
+  [/j(ñ|n)(ā|a)na/gi, "gyaana"],
+  [/br(ā|a)hma(ṇ|n)a/gi, "braahmana"],
+  [/Vai(ṣ|s)(ṇ|n)ava/gi, "Vaishnava"],
+  [/sanny(ā|a)s(ī|i)/gi, "sannyaasee"],
+  [/Hare/g, "Hah-ray"]
+];
+var CHARS = [
+  [/[śṣ]/g,"sh"],[/[ŚṢ]/g,"Sh"],[/ṛ/g,"ri"],[/Ṛ/g,"Ri"],
+  [/ñ/g,"ny"],[/Ñ/g,"Ny"],[/[ṁṅṇ]/g,"n"],[/[ṀṄṆ]/g,"N"],
+  [/ṭ/g,"t"],[/Ṭ/g,"T"],[/ḍ/g,"d"],[/Ḍ/g,"D"],[/ḥ/g,"h"],[/Ḥ/g,"H"]
+];
+var ABBR = /\b(Mr|Mrs|Ms|Dr|Sri|Srila|St|etc|vs|No|Ch|Bg|SB|Cc|Jr|Sr)\.\s*$/i;
+
+var synth = window.speechSynthesis;
+function $(id){ return document.getElementById(id); }
+
+var bar=$("bar"), playBtn=$("play"), prevBtn=$("prev"), nextBtn=$("next"),
+    voiceSel=$("voice"), rate=$("rate"), rateVal=$("rateVal"), editBtn=$("edit"),
+    themeBtn=$("theme"), count=$("count"), textEl=$("text"), pasteView=$("pasteView"),
+    input=$("input"), loadBtn=$("load"), clearBtn=$("clear");
+
+/* idx IS the cursor: where reading is now, or where it starts next. */
+var sentences=[], nodes=[], idx=0, playing=false, keepAlive=null, voices=[];
+
+function remember(k,v){ try{ localStorage.setItem("rdr:"+k,v); }catch(e){} }
+function recall(k){ try{ return localStorage.getItem("rdr:"+k); }catch(e){ return null; } }
+
+/* ─── text in ─── */
+function stripHTML(html){
+  var doc = new DOMParser().parseFromString(html,"text/html");
+  var i, els = doc.querySelectorAll("script,style,noscript");
+  for(i=0;i<els.length;i++) els[i].remove();
+  els = doc.querySelectorAll("br");
+  for(i=0;i<els.length;i++) els[i].replaceWith("\n");
+  els = doc.querySelectorAll("p,div,li,tr,h1,h2,h3,h4,blockquote");
+  for(i=0;i<els.length;i++) els[i].appendChild(doc.createTextNode("\n"));
+  return doc.body ? doc.body.textContent : html;
+}
+
+function tidy(raw){
+  var t = (raw||"").replace(/\r/g,"");
+  t = t.replace(/^\s*unsubscribe\b.*$/gim,"");
+  t = t.replace(/^\s*https?:\/\/\S+\s*$/gim,"");
+  t = t.replace(/^\s*©.*$/gm,"");
+  t = t.replace(/[ \t]+/g," ");
+  t = t.replace(/\n{3,}/g,"\n\n");
+  return t.trim();
+}
+
+/* ─── split into sentences, keeping paragraph breaks ─── */
+function build(text){
+  var out = [];
+  var paras = text.split(/\n+/);
+  for (var i=0;i<paras.length;i++){
+    var p = paras[i].trim();
+    if (!p) continue;
+    var chunks = p.match(/[^.!?…]+[.!?…]+["'”’)\]]*\s*|[^.!?…]+$/g) || [p];
+    var buf = "";
+    for (var j=0;j<chunks.length;j++){
+      buf += chunks[j];
+      if (ABBR.test(buf)) continue;
+      if (buf.trim().length < 3) continue;
+      out.push({ text: buf.trim(), end:false });
+      buf = "";
+    }
+    if (buf.trim()) out.push({ text: buf.trim(), end:false });
+    if (out.length) out[out.length-1].end = true;
+  }
+  return out;
+}
+
+/* ─── what the voice says ─── */
+function spoken(s){
+  var t = s, i;
+  for (i=0;i<SAY.length;i++) t = t.replace(SAY[i][0], SAY[i][1]);
+  for (i=0;i<CHARS.length;i++) t = t.replace(CHARS[i][0], CHARS[i][1]);
+  t = t.normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  t = t.replace(/(\d+)\.(\d+)\s*[–-]\s*(\d+)/g,"chapter $1, verses $2 to $3");
+  t = t.replace(/(\d+)\.(\d+)/g,"chapter $1, verse $2");
+  return t.replace(/[-–—]/g," ").trim();
+}
+
+/* ─── render ─── */
+function render(){
+  textEl.innerHTML = "";
+  nodes = [];
+  var p = document.createElement("p");
+  for (var i=0;i<sentences.length;i++){
+    var span = document.createElement("span");
+    span.className = "s";
+    span.textContent = sentences[i].text + " ";
+    span.tabIndex = 0;
+    span.dataset.i = i;
+    nodes.push(span);
+    p.appendChild(span);
+    if (sentences[i].end){ textEl.appendChild(p); p = document.createElement("p"); }
+  }
+  if (p.childNodes.length) textEl.appendChild(p);
+  mark();
+}
+
+function mark(){
+  for (var i=0;i<nodes.length;i++){
+    nodes[i].classList.toggle("cursor", i===idx);
+    nodes[i].classList.toggle("live", i===idx && playing);
+    nodes[i].classList.toggle("done", i<idx);
+  }
+  count.textContent = sentences.length ? (idx+1)+" / "+sentences.length : "";
+}
+
+/* Only scroll when the cursor has drifted out of the comfortable middle band.
+   Re-centring every sentence makes the page crawl downwards under your eyes. */
+function scrollTo(i){
+  var el = nodes[i];
+  if (!el) return;
+  var box = el.getBoundingClientRect();
+  var top = bar.classList.contains("hidden") ? 0 : bar.getBoundingClientRect().height;
+  var lo  = top + window.innerHeight * 0.18;
+  var hi  = top + (window.innerHeight - top) * 0.78;
+  if (box.top >= lo && box.bottom <= hi) return;   // already sitting comfortably — leave it be
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  window.scrollTo({
+    top: window.scrollY + box.top - (top + (window.innerHeight - top) * 0.38),
+    behavior: reduce ? "auto" : "smooth"
+  });
+}
+
+/* ─── voices ─── */
+function loadVoices(){
+  voices = synth.getVoices().filter(function(v){ return /^en/i.test(v.lang); });
+  if (!voices.length) voices = synth.getVoices();
+  voiceSel.innerHTML = "";
+  voices.forEach(function(v,i){
+    var o = document.createElement("option");
+    o.value = i;
+    o.textContent = v.name.replace(/\s*\(.*?\)\s*/g,"") + " · " + v.lang;
+    voiceSel.appendChild(o);
+  });
+  var saved = recall("voice"), pick = -1, i;
+  for (i=0;i<voices.length;i++) if (voices[i].name===saved) pick = i;
+  if (pick<0) for (i=0;i<voices.length;i++) if (/en[-_]IN/i.test(voices[i].lang)){ pick=i; break; }
+  if (pick<0) pick = 0;
+  voiceSel.value = String(Math.max(0,pick));
+}
+loadVoices();
+if (synth.addEventListener) synth.addEventListener("voiceschanged", loadVoices);
+else synth.onvoiceschanged = loadVoices;
+
+/* ─── speaking ─── */
+/* cancel() makes the browser fire end/error on the utterance we just killed.
+   Every speak() bumps `gen`, so those stale callbacks recognise they're dead
+   and stay quiet — otherwise each one advances a sentence and the whole thing
+   runs away down the page. */
+var gen = 0;
+
+function speak(i){
+  var mine = ++gen;
+  synth.cancel();
+  if (i >= sentences.length){          // ran off the end — cursor rests on the last line
+    stop();
+    idx = sentences.length-1;
+    mark();
+    scrollTo(idx);
+    return;
+  }
+  idx = i;
+  var u = new SpeechSynthesisUtterance(spoken(sentences[i].text));
+  var v = voices[Number(voiceSel.value)];
+  if (v){ u.voice = v; u.lang = v.lang; }
+  u.rate = Number(rate.value);
+  function advance(){ if (playing && mine === gen) speak(idx+1); }
+  u.onend = advance;
+  u.onerror = advance;
+  mark();
+  scrollTo(i);
+  synth.speak(u);
+}
+
+function start(from){
+  if (!sentences.length) return;
+  if (typeof from === "number") idx = from;   // otherwise: from wherever the cursor sits
+  playing = true;
+  document.body.classList.remove("idle");
+  playBtn.textContent = "Pause";
+  clearInterval(keepAlive);
+  keepAlive = setInterval(function(){
+    if (synth.speaking && !synth.paused){ synth.pause(); synth.resume(); }
+  }, 9000);
+  speak(idx);
+}
+
+function stop(){
+  playing = false;
+  gen++;                 // disown anything still in flight
+  clearInterval(keepAlive);
+  synth.cancel();
+  document.body.classList.add("idle");
+  playBtn.textContent = "Read";
+  mark();
+}
+
+/* ─── the cursor ─── */
+function place(i){
+  i = Math.max(0, Math.min(sentences.length-1, i));
+  idx = i;
+  if (playing) speak(i);      // already reading: pick up from the new spot
+  else { mark(); scrollTo(i); }
+}
+
+textEl.addEventListener("click", function(e){
+  var el = e.target.closest ? e.target.closest(".s") : null;
+  if (!el) return;
+  var sel = window.getSelection();
+  if (sel && !sel.isCollapsed) return;      // a drag to select, not a click
+  place(Number(el.dataset.i));
+});
+textEl.addEventListener("keydown", function(e){
+  if (e.key !== "Enter") return;
+  var el = e.target.closest ? e.target.closest(".s") : null;
+  if (!el) return;
+  e.preventDefault();
+  place(Number(el.dataset.i));
+  if (!playing) start();                    // Enter = put it there and go
+});
+
+/* ─── controls ─── */
+playBtn.addEventListener("click", function(){ playing ? stop() : start(); });
+prevBtn.addEventListener("click", function(){ place(idx-1); });
+nextBtn.addEventListener("click", function(){ place(idx+1); });
+
+rate.addEventListener("input", function(){
+  rateVal.textContent = Number(rate.value).toFixed(2);
+  remember("rate", rate.value);
+  if (playing) speak(idx);
+});
+voiceSel.addEventListener("change", function(){
+  var v = voices[Number(voiceSel.value)];
+  if (v) remember("voice", v.name);
+  if (playing) speak(idx);
+});
+themeBtn.addEventListener("click", function(){
+  var now = document.documentElement.getAttribute("data-theme")==="day" ? "night" : "day";
+  document.documentElement.setAttribute("data-theme", now);
+  remember("theme", now);
+});
+
+editBtn.addEventListener("click", function(){
+  stop();
+  pasteView.classList.remove("hidden");
+  bar.classList.add("hidden");
+  textEl.innerHTML = "";
+  nodes = []; sentences = []; idx = 0;
+  input.focus();
+});
+
+clearBtn.addEventListener("click", function(){ input.value=""; input.focus(); });
+
+loadBtn.addEventListener("click", function(){
+  var t = tidy(input.value);
+  if (!t){ input.focus(); return; }
+  sentences = build(t);
+  if (!sentences.length){ input.focus(); return; }
+  idx = 0;
+  pasteView.classList.add("hidden");
+  bar.classList.remove("hidden");
+  render();
+  window.scrollTo({ top:0 });
+});
+
+input.addEventListener("paste", function(e){
+  var html = e.clipboardData && e.clipboardData.getData("text/html");
+  if (!html) return;
+  e.preventDefault();
+  input.value = tidy(stripHTML(html));
+});
+
+document.addEventListener("keydown", function(e){
+  if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+  if (!sentences.length) return;
+  if (e.key === " "){ e.preventDefault(); playing ? stop() : start(); }
+  if (e.key === "ArrowRight"){ e.preventDefault(); place(idx+1); }
+  if (e.key === "ArrowLeft"){ e.preventDefault(); place(idx-1); }
+});
+
+window.addEventListener("beforeunload", function(){ synth.cancel(); });
+
+/* ─── restore small preferences only ─── */
+(function(){
+  var th = recall("theme");
+  if (th) document.documentElement.setAttribute("data-theme", th);
+  var r = recall("rate");
+  if (r) rate.value = r;
+  rateVal.textContent = Number(rate.value).toFixed(2);
+  input.focus();
+})();
+
+})();
+</script>
+</body>
+</html>
