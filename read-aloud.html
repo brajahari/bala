@@ -45,7 +45,9 @@ button:focus-visible,select:focus-visible,textarea:focus-visible,.s:focus-visibl
 select{max-width:10rem}
 .rate{display:flex;align-items:center;gap:.4rem;font-family:"IBM Plex Mono",monospace;font-size:.72rem;color:var(--teal)}
 input[type=range]{width:5rem;accent-color:var(--teal)}
-.count{font-family:"IBM Plex Mono",monospace;font-size:.72rem;color:var(--teal);margin-left:auto}
+/* the position slider stretches to fill whatever the toolbar has spare */
+#seek{width:auto;flex:1 1 6rem;min-width:4rem;margin-left:auto;cursor:pointer}
+.count{font-family:"IBM Plex Mono",monospace;font-size:.72rem;color:var(--teal)}
 
 /* paste view */
 #pasteView{padding-top:2.5rem}
@@ -85,7 +87,12 @@ body.idle .s.cursor{background:var(--panel)}
 kbd{border:1px solid var(--rule);border-radius:2px;padding:.05rem .3rem}
 .hidden{display:none}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
-@media(max-width:520px){body{font-size:18px}.count{width:100%;margin-left:0;order:9}}
+@media(max-width:520px){
+  body{font-size:18px}
+  /* give the slider a whole row on a phone — it needs the width to be usable */
+  #seek{order:8;flex-basis:100%;margin-left:0}
+  .count{width:100%;margin-left:0;order:9}
+}
 </style>
 </head>
 <body class="idle">
@@ -103,6 +110,7 @@ kbd{border:1px solid var(--rule);border-radius:2px;padding:.05rem .3rem}
     </label>
     <button id="edit">New text</button>
     <button id="theme" title="Light or dark">&#9788;</button>
+    <input type="range" id="seek" min="0" max="0" value="0" step="1" aria-label="Position in text">
     <span class="count" id="count"></span>
   </div>
 
@@ -157,10 +165,10 @@ function $(id){ return document.getElementById(id); }
 var bar=$("bar"), playBtn=$("play"), prevBtn=$("prev"), nextBtn=$("next"),
     voiceSel=$("voice"), rate=$("rate"), rateVal=$("rateVal"), editBtn=$("edit"),
     themeBtn=$("theme"), count=$("count"), textEl=$("text"), pasteView=$("pasteView"),
-    input=$("input"), loadBtn=$("load"), clearBtn=$("clear");
+    input=$("input"), loadBtn=$("load"), clearBtn=$("clear"), seek=$("seek");
 
 /* idx IS the cursor: where reading is now, or where it starts next. */
-var sentences=[], nodes=[], idx=0, playing=false, keepAlive=null, voices=[];
+var sentences=[], nodes=[], idx=0, playing=false, keepAlive=null, voices=[], dragging=false;
 
 function remember(k,v){ try{ localStorage.setItem("rdr:"+k,v); }catch(e){} }
 function recall(k){ try{ return localStorage.getItem("rdr:"+k); }catch(e){ return null; } }
@@ -236,6 +244,7 @@ function render(){
     if (sentences[i].end){ textEl.appendChild(p); p = document.createElement("p"); }
   }
   if (p.childNodes.length) textEl.appendChild(p);
+  seek.max = String(Math.max(0, sentences.length-1));
   mark();
 }
 
@@ -246,11 +255,12 @@ function mark(){
     nodes[i].classList.toggle("done", i<idx);
   }
   count.textContent = sentences.length ? (idx+1)+" / "+sentences.length : "";
+  if (!dragging) seek.value = String(idx);   // don't yank the handle out from under a finger
 }
 
 /* Only scroll when the cursor has drifted out of the comfortable middle band.
    Re-centring every sentence makes the page crawl downwards under your eyes. */
-function scrollTo(i){
+function scrollTo(i, instant){
   var el = nodes[i];
   if (!el) return;
   var box = el.getBoundingClientRect();
@@ -261,7 +271,7 @@ function scrollTo(i){
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   window.scrollTo({
     top: window.scrollY + box.top - (top + (window.innerHeight - top) * 0.38),
-    behavior: reduce ? "auto" : "smooth"
+    behavior: (reduce || instant) ? "auto" : "smooth"   // a drag wants to keep up, not glide
   });
 }
 
@@ -314,6 +324,7 @@ function speak(i){
   u.onstart = function(){ if (mine === gen) retries = 0; };
   function advance(){
     if (!playing || mine !== gen) return;
+    if (dragging) return;              // you're scrubbing — idx is yours, not mine
     /* Locked screen: the engine reports each sentence "finished" the instant it
        starts, so advancing here would race to the end in silence. Hold position
        and let watch() resume from this sentence once the screen is back.
@@ -336,7 +347,7 @@ function speak(i){
 /* Android also just stops sometimes — no end event, no error, nothing.
    Poll for that silence and pick the reading back up. */
 function watch(){
-  if (!playing || document.hidden) return;
+  if (!playing || document.hidden || dragging) return;
   if (synth.speaking || synth.pending || synth.paused) return;
   if (Date.now() - lastKick < 3000) return;      // a slow engine is still waking up
   if (retries++ < 2) speak(idx);                 // retry this sentence
@@ -398,6 +409,20 @@ textEl.addEventListener("keydown", function(e){
 playBtn.addEventListener("click", function(){ playing ? stop() : start(); });
 prevBtn.addEventListener("click", function(){ place(idx-1); });
 nextBtn.addEventListener("click", function(){ place(idx+1); });
+
+/* Dragging only moves the cursor and scrolls — speaking every sentence you slide
+   past would stutter. The voice picks up when you let go. */
+seek.addEventListener("input", function(){
+  if (!sentences.length) return;
+  dragging = true;
+  idx = Math.max(0, Math.min(sentences.length-1, Number(seek.value)));
+  mark();
+  scrollTo(idx, true);
+});
+seek.addEventListener("change", function(){
+  dragging = false;
+  if (playing) speak(idx);
+});
 
 rate.addEventListener("input", function(){
   rateVal.textContent = Number(rate.value).toFixed(2);
