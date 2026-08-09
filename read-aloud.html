@@ -312,7 +312,16 @@ function speak(i){
   if (v){ u.voice = v; u.lang = v.lang; }
   u.rate = Number(rate.value);
   u.onstart = function(){ if (mine === gen) retries = 0; };
-  function advance(){ if (playing && mine === gen){ retries = 0; speak(idx+1); } }
+  function advance(){
+    if (!playing || mine !== gen) return;
+    /* Locked screen: the engine reports each sentence "finished" the instant it
+       starts, so advancing here would race to the end in silence. Hold position
+       and let watch() resume from this sentence once the screen is back.
+       Desktop keeps speaking in background tabs, so this only applies to phones. */
+    if (MOBILE && document.hidden) return;
+    retries = 0;
+    speak(idx+1);
+  }
   u.onend = advance;
   u.onerror = advance;
   mark();
@@ -442,6 +451,11 @@ document.addEventListener("keydown", function(e){
   if (e.key === " "){ e.preventDefault(); playing ? stop() : start(); }
   if (e.key === "ArrowRight"){ e.preventDefault(); place(idx+1); }
   if (e.key === "ArrowLeft"){ e.preventDefault(); place(idx-1); }
+});
+
+/* Back from a locked screen — pick the sentence up again without waiting for the poll. */
+document.addEventListener("visibilitychange", function(){
+  if (!document.hidden && playing) setTimeout(watch, 300);
 });
 
 window.addEventListener("beforeunload", function(){ synth.cancel(); });
