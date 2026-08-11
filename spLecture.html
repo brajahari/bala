@@ -128,7 +128,7 @@ kbd{border:1px solid var(--rule);border-radius:2px;padding:.05rem .3rem}
       <input type="range" id="rate" min="0.6" max="1.5" step="0.05" value="0.95" aria-label="Speed">
       <span id="rateVal">0.95</span>
     </label>
-    <button id="reload" title="Fetch the Google Doc again">Refresh</button>
+    <button id="reload" title="Fetch the page again">Refresh</button>
     <button id="edit">New text</button>
     <button id="theme" title="Light or dark">&#9788;</button>
     <input type="range" id="seek" min="0" max="0" value="0" step="1" aria-label="Position in text">
@@ -136,11 +136,11 @@ kbd{border:1px solid var(--rule);border-radius:2px;padding:.05rem .3rem}
   </div>
 
   <section id="pasteView">
-    <h1>Read a Google Doc aloud</h1>
+    <h1>Read a page aloud</h1>
     <div class="docrow">
-      <input type="url" id="docUrl" spellcheck="false" aria-label="Google Doc link"
-             placeholder="https://docs.google.com/document/d/&#8230;">
-      <button id="fetchDoc">Fetch doc</button>
+      <input type="url" id="docUrl" spellcheck="false" aria-label="Page or Google Doc link"
+             placeholder="https://&#8230; a web page or Google Doc link">
+      <button id="fetchDoc">Fetch</button>
     </div>
     <p class="status" id="status" role="status" aria-live="polite"></p>
 
@@ -218,27 +218,32 @@ function stripHTML(html){
   return doc.body ? doc.body.textContent : html;
 }
 
-function tidy(raw){
+function tidy(raw, isDoc){
   var t = (raw||"").replace(/\r/g,"");
   t = t.replace(/^\s*unsubscribe\b.*$/gim,"");
   t = t.replace(/^\s*https?:\/\/\S+\s*$/gim,"");
   t = t.replace(/^\s*©.*$/gm,"");
-  /* chrome a published-to-web page wraps its content in */
+  /* chrome a published-to-web Google Doc wraps its content in. The first two
+     phrases are precise enough to Google Docs to strip on any page; "Report
+     abuse" and "Learn More" are common enough on ordinary websites that
+     they're only safe to strip when the source is known to be a Doc. */
   t = t.replace(/^\s*Published using Google Docs\s*$/gim,"");
-  t = t.replace(/^\s*Report [Aa]buse\s*$/gim,"");
-  t = t.replace(/^\s*Learn [Mm]ore\s*$/gim,"");
   t = t.replace(/^\s*Updated automatically every \d+ minutes\s*$/gim,"");
+  if (isDoc){
+    t = t.replace(/^\s*Report [Aa]buse\s*$/gim,"");
+    t = t.replace(/^\s*Learn [Mm]ore\s*$/gim,"");
+  }
   t = t.replace(/[ \t]+/g," ");
   t = t.replace(/\n{3,}/g,"\n\n");
   return t.trim();
 }
 
-/* ─── google docs ───
-   The doc must be shared as "anyone with the link", and it's read through
-   /mobilebasic — plain HTML, delivered in one hop with a CORS header on it.
-   (The obvious /export?format=txt is a dead end: it 307s off to
-   googleusercontent and the redirect itself carries no CORS header, so the
-   browser refuses to follow it.)
+/* ─── fetching the source ───
+   Google Docs: the doc must be shared as "anyone with the link", and it's
+   read through /mobilebasic — plain HTML, delivered in one hop with a CORS
+   header on it. (The obvious /export?format=txt is a dead end: it 307s off
+   to googleusercontent and the redirect itself carries no CORS header, so
+   the browser refuses to follow it.)
 
    Google echoes the page's own origin back in that header, and it will not
    echo "null" — which is the origin of a page opened straight off the disk.
@@ -247,22 +252,34 @@ function tidy(raw){
    That service sees the link, so serve this page over http (a local server,
    GitHub Pages) and the direct path is taken instead and nothing leaves.
 
+   Any other http(s) URL almost never gets a CORS header at all, so there's
+   no point trying a direct fetch first — it always goes through r.jina.ai,
+   which also does readability-style extraction (dropping nav/ads/etc.)
+   instead of the naive full-page dump stripHTML() does.
+
    credentials:"omit" keeps cookies off the request — a request carrying them
    can't be answered cross-origin at all. */
 var READER = "https://r.jina.ai/";
 
-/* Two link shapes work: a share/edit link (…/document/d/{id}/edit — needs
-   "Anyone with the link") or a published-to-web link (…/document/d/e/{id}/pub
-   — already public, and is read straight from its own address). Route each
-   to the page that actually serves its plain text. */
+/* Two Google Docs link shapes get a fast path: a share/edit link
+   (…/document/d/{id}/edit — needs "Anyone with the link") or a
+   published-to-web link (…/document/d/e/{id}/pub — already public). Google
+   echoes CORS headers back for both, so they're fetched directly.
+   Anything else that's a plain http(s) URL is still readable — it just goes
+   through the reader instead of a direct fetch (see fetchDoc). */
 function resolveDoc(u){
   u = (u||"").trim();
   var m = /\/document\/d\/e\/([A-Za-z0-9_-]{20,})/.exec(u);
-  if (m) return "https://docs.google.com/document/d/e/"+m[1]+"/pub";
+  if (m) return { page:"https://docs.google.com/document/d/e/"+m[1]+"/pub", direct:true, isDoc:true };
   m = /\/document\/d\/([A-Za-z0-9_-]{16,})/.exec(u);
-  if (m) return "https://docs.google.com/document/d/"+m[1]+"/mobilebasic";
+  if (m) return { page:"https://docs.google.com/document/d/"+m[1]+"/mobilebasic", direct:true, isDoc:true };
   m = /^[A-Za-z0-9_-]{16,}$/.exec(u);
-  if (m) return "https://docs.google.com/document/d/"+m[0]+"/mobilebasic";
+  if (m) return { page:"https://docs.google.com/document/d/"+m[0]+"/mobilebasic", direct:true, isDoc:true };
+  try {
+    var parsed = new URL(u);
+    if (parsed.protocol === "http:" || parsed.protocol === "https:")
+      return { page:u, direct:false, isDoc:false };
+  } catch(e){ /* not a URL at all */ }
   return null;
 }
 
@@ -293,29 +310,39 @@ function unreader(t){
 }
 
 /* Docs leads with the tab's name on its own line. It isn't part of the writing. */
-function untab(t){ return t.replace(/^[ \t]*Tab \d+[ \t]*$/gm, ""); }
+function untab(t, isDoc){ return isDoc ? t.replace(/^[ \t]*Tab \d+[ \t]*$/gm, "") : t; }
 
 function fetchDoc(url, then, onFail){
-  var page = resolveDoc(url);
-  if (!page){
-    say("That doesn't look like a Google Doc link.", true);
+  var doc = resolveDoc(url);
+  if (!doc){
+    say("That doesn't look like a usable link.", true);
     if (onFail) onFail();
     return;
   }
+  var page = doc.page, isDoc = doc.isDoc;
   var busy = document.activeElement;
-  say("Fetching the document…");
   fetchBtn.disabled = reloadBtn.disabled = true;
-  get(page).then(stripHTML)
-    .catch(function(e){
-      if (answered(e)) throw e;          // Google spoke — don't go asking a stranger
-      say("Opened from disk, so reading it through r.jina.ai…");
-      return get(READER + page).then(unreader);
-    })
+
+  var attempt;
+  if (doc.direct){
+    say("Fetching the document…");
+    attempt = get(page).then(stripHTML)
+      .catch(function(e){
+        if (answered(e)) throw e;          // Google spoke — don't go asking a stranger
+        say("Opened from disk, so reading it through r.jina.ai…");
+        return get(READER + page).then(unreader);
+      });
+  } else {
+    say("Fetching the page through r.jina.ai…");
+    attempt = get(READER + page).then(unreader);
+  }
+
+  attempt
     .then(function(t){
       t = t.replace(/^\uFEFF/,"");        // the export leads with a BOM
       if (/^[\s\S]{0,400}?(sign in|request access|you need permission)/i.test(t))
         throw new Error("private");
-      var clean = tidy(untab(t));
+      var clean = tidy(untab(t, isDoc), isDoc);
       if (!clean) throw new Error("empty");
       remember("doc", url);
       say("");
@@ -324,10 +351,12 @@ function fetchDoc(url, then, onFail){
     .catch(function(e){
       var m = String(e && e.message);
       say(
-        m === "private"   ? "That doc isn't shared publicly. Open it → Share → General access → Anyone with the link → Viewer."
-        : m === "no-doc"  ? "No document at that link."
-        : m === "empty"   ? "The document came back empty."
-        : "Couldn't reach the document — check the connection, or paste the text below.",
+        m === "private" ? (isDoc
+            ? "That doc isn't shared publicly. Open it → Share → General access → Anyone with the link → Viewer."
+            : "That page needs you to sign in — it can't be read from here.")
+        : m === "no-doc" ? (isDoc ? "No document at that link." : "Nothing found at that link.")
+        : m === "empty"  ? (isDoc ? "The document came back empty." : "The page came back empty.")
+        : "Couldn't reach it — check the connection, or paste the text below.",
         true
       );
       if (onFail) onFail();
