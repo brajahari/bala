@@ -188,8 +188,8 @@ var CHARS = [
 ];
 var ABBR = /\b(Mr|Mrs|Ms|Dr|Sri|Srila|St|etc|vs|No|Ch|Bg|SB|Cc|Jr|Sr)\.\s*$/i;
 
-/* The doc opened on startup. Any Google Docs link works — this is just the default. */
-var DOC_DEFAULT = "https://docs.google.com/document/d/1s-XopEHcJOCdOD6Pmvl2bXhstcP4MUUMBYkqIF0If8U/edit?usp=sharing";
+/* The doc that fills the box on startup. Any share or published link works — this is just the default. */
+var DOC_DEFAULT = "https://docs.google.com/document/d/e/2PACX-1vS_DNeREuq96b8rt_Nm8HqVo739-ZrwFB4azSrtxJU12zk0Vi1nNxnWCcybGNjeeGKpiESGVZUlUGMG/pub";
 
 var synth = window.speechSynthesis;
 function $(id){ return document.getElementById(id); }
@@ -223,6 +223,11 @@ function tidy(raw){
   t = t.replace(/^\s*unsubscribe\b.*$/gim,"");
   t = t.replace(/^\s*https?:\/\/\S+\s*$/gim,"");
   t = t.replace(/^\s*©.*$/gm,"");
+  /* chrome a published-to-web page wraps its content in */
+  t = t.replace(/^\s*Published using Google Docs\s*$/gim,"");
+  t = t.replace(/^\s*Report [Aa]buse\s*$/gim,"");
+  t = t.replace(/^\s*Learn [Mm]ore\s*$/gim,"");
+  t = t.replace(/^\s*Updated automatically every \d+ minutes\s*$/gim,"");
   t = t.replace(/[ \t]+/g," ");
   t = t.replace(/\n{3,}/g,"\n\n");
   return t.trim();
@@ -246,11 +251,19 @@ function tidy(raw){
    can't be answered cross-origin at all. */
 var READER = "https://r.jina.ai/";
 
-function docId(u){
-  var m = /\/document\/d\/([A-Za-z0-9_-]{16,})/.exec(u||"");
-  if (m) return m[1];
-  m = /^[A-Za-z0-9_-]{16,}$/.exec((u||"").trim());
-  return m ? m[0] : null;
+/* Two link shapes work: a share/edit link (…/document/d/{id}/edit — needs
+   "Anyone with the link") or a published-to-web link (…/document/d/e/{id}/pub
+   — already public, and is read straight from its own address). Route each
+   to the page that actually serves its plain text. */
+function resolveDoc(u){
+  u = (u||"").trim();
+  var m = /\/document\/d\/e\/([A-Za-z0-9_-]{20,})/.exec(u);
+  if (m) return "https://docs.google.com/document/d/e/"+m[1]+"/pub";
+  m = /\/document\/d\/([A-Za-z0-9_-]{16,})/.exec(u);
+  if (m) return "https://docs.google.com/document/d/"+m[1]+"/mobilebasic";
+  m = /^[A-Za-z0-9_-]{16,}$/.exec(u);
+  if (m) return "https://docs.google.com/document/d/"+m[0]+"/mobilebasic";
+  return null;
 }
 
 function say(msg, bad){
@@ -283,13 +296,12 @@ function unreader(t){
 function untab(t){ return t.replace(/^[ \t]*Tab \d+[ \t]*$/gm, ""); }
 
 function fetchDoc(url, then, onFail){
-  var id = docId(url);
-  if (!id){
+  var page = resolveDoc(url);
+  if (!page){
     say("That doesn't look like a Google Doc link.", true);
     if (onFail) onFail();
     return;
   }
-  var page = "https://docs.google.com/document/d/"+id+"/mobilebasic";
   var busy = document.activeElement;
   say("Fetching the document…");
   fetchBtn.disabled = reloadBtn.disabled = true;
