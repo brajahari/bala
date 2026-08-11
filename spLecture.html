@@ -151,7 +151,6 @@ kbd{border:1px solid var(--rule);border-radius:2px;padding:.05rem .3rem}
       <button id="clear">Clear</button>
     </div>
     <p class="hint">
-      The doc loads on its own. It must be shared as <em>anyone with the link</em>.<br>
       Click a sentence to put the cursor there. Reading starts at the cursor.<br>
       The cursor follows along as it reads.<br>
       <kbd>space</kbd> play or pause &nbsp;·&nbsp; <kbd>&larr;</kbd> <kbd>&rarr;</kbd> move the cursor
@@ -230,11 +229,23 @@ function tidy(raw){
 }
 
 /* ─── google docs ───
-   The plain-text export endpoint answers with Access-Control-Allow-Origin: *,
-   so the page can read the doc itself — no server, no proxy, no API key.
-   The one requirement is on the doc: Share → Anyone with the link → Viewer.
-   credentials:"omit" keeps the browser from attaching cookies, which would
-   otherwise turn the request into a signed-in one the CORS wildcard rejects. */
+   The doc must be shared as "anyone with the link", and it's read through
+   /mobilebasic — plain HTML, delivered in one hop with a CORS header on it.
+   (The obvious /export?format=txt is a dead end: it 307s off to
+   googleusercontent and the redirect itself carries no CORS header, so the
+   browser refuses to follow it.)
+
+   Google echoes the page's own origin back in that header, and it will not
+   echo "null" — which is the origin of a page opened straight off the disk.
+   So a file:// copy can't read the doc directly and goes via r.jina.ai, a
+   public reader that fetches the page server-side and hands back plain text.
+   That service sees the link, so serve this page over http (a local server,
+   GitHub Pages) and the direct path is taken instead and nothing leaves.
+
+   credentials:"omit" keeps cookies off the request — a request carrying them
+   can't be answered cross-origin at all. */
+var READER = "https://r.jina.ai/";
+
 function docId(u){
   var m = /\/document\/d\/([A-Za-z0-9_-]{16,})/.exec(u||"");
   if (m) return m[1];
@@ -247,6 +258,30 @@ function say(msg, bad){
   status.classList.toggle("bad", !!bad);
 }
 
+function get(u){
+  return fetch(u, { credentials:"omit" }).then(function(r){
+    /* Google answers these itself and means them — no point asking anywhere else. */
+    if (r.status === 401 || r.status === 403) throw new Error("private");
+    if (r.status === 404) throw new Error("no-doc");
+    if (!r.ok) throw new Error("http-"+r.status);
+    return r.text();
+  });
+}
+function answered(e){ return /^(private|no-doc|http-)/.test(String(e && e.message)); }
+
+/* The reader hands the page back as markdown under a Title:/URL Source: preamble. */
+function unreader(t){
+  t = t.replace(/^[\s\S]*?\bMarkdown Content:[ \t]*\n/, "");
+  t = t.replace(/!\[[^\]]*\]\([^)]*\)/g, "");        // images
+  t = t.replace(/\[([^\]]+)\]\([^)]*\)/g, "$1");     // links down to their words
+  t = t.replace(/^[ \t]*#{1,6}[ \t]+/gm, "");        // heading marks
+  t = t.replace(/(\*\*|__)(.*?)\1/g, "$2");          // bold
+  return t;
+}
+
+/* Docs leads with the tab's name on its own line. It isn't part of the writing. */
+function untab(t){ return t.replace(/^[ \t]*Tab \d+[ \t]*$/gm, ""); }
+
 function fetchDoc(url, then, onFail){
   var id = docId(url);
   if (!id){
@@ -254,19 +289,21 @@ function fetchDoc(url, then, onFail){
     if (onFail) onFail();
     return;
   }
+  var page = "https://docs.google.com/document/d/"+id+"/mobilebasic";
   var busy = document.activeElement;
   say("Fetching the document…");
   fetchBtn.disabled = reloadBtn.disabled = true;
-  fetch("https://docs.google.com/document/d/"+id+"/export?format=txt",
-        { credentials:"omit", redirect:"follow" })
-    .then(function(r){
-      if (!r.ok) throw new Error(r.status===404 ? "no-doc" : "http-"+r.status);
-      return r.text();
+  get(page).then(stripHTML)
+    .catch(function(e){
+      if (answered(e)) throw e;          // Google spoke — don't go asking a stranger
+      say("Opened from disk, so reading it through r.jina.ai…");
+      return get(READER + page).then(unreader);
     })
     .then(function(t){
       t = t.replace(/^\uFEFF/,"");        // the export leads with a BOM
-      if (/^\s*<(!doctype|html)\b/i.test(t)) throw new Error("private");
-      var clean = tidy(t);
+      if (/^[\s\S]{0,400}?(sign in|request access|you need permission)/i.test(t))
+        throw new Error("private");
+      var clean = tidy(untab(t));
       if (!clean) throw new Error("empty");
       remember("doc", url);
       say("");
@@ -275,8 +312,7 @@ function fetchDoc(url, then, onFail){
     .catch(function(e){
       var m = String(e && e.message);
       say(
-        m === "private" || m === "http-401" || m === "http-403"
-          ? "That doc isn't shared publicly. Open it → Share → General access → Anyone with the link → Viewer."
+        m === "private"   ? "That doc isn't shared publicly. Open it → Share → General access → Anyone with the link → Viewer."
         : m === "no-doc"  ? "No document at that link."
         : m === "empty"   ? "The document came back empty."
         : "Couldn't reach the document — check the connection, or paste the text below.",
@@ -297,7 +333,9 @@ function build(text){
   for (var i=0;i<paras.length;i++){
     var p = paras[i].trim();
     if (!p) continue;
-    var chunks = p.match(/[^.!?…]+[.!?…]+["'”’)\]]*\s*|[^.!?…]+$/g) || [p];
+    /* A full stop only ends a sentence when something blank follows it. Without
+       that check "Bhagavad-gītā 4.9–11" and every URL get chopped mid-word. */
+    var chunks = p.match(/[\s\S]*?[.!?…]+["'”’)\]]*(?=\s|$)\s*|[\s\S]+$/g) || [p];
     var buf = "";
     for (var j=0;j<chunks.length;j++){
       buf += chunks[j];
@@ -616,7 +654,7 @@ window.addEventListener("beforeunload", function(){ synth.cancel(); });
   docUrl.value = q || recall("doc") || DOC_DEFAULT;
 
   input.focus();
-  if (docId(docUrl.value)) fetchDoc(docUrl.value, present);   // straight into the text
+  // User must click "Fetch doc" to load — don't auto-fetch
 })();
 
 })();
