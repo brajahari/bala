@@ -1,708 +1,169 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Reader</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Gentium+Book+Plus:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-:root{
-  --bg:#15171F; --fg:#DDD7CA; --live:#E3A73B; --teal:#5C8A81;
-  --rule:rgba(221,215,202,.16); --panel:rgba(221,215,202,.05); --dim:.36;
-}
-html[data-theme="day"]{
-  --bg:#E9E7DF; --fg:#23252E; --live:#9C6408; --teal:#35635A;
-  --rule:rgba(35,37,46,.16); --panel:rgba(35,37,46,.04); --dim:.4;
-}
-*{box-sizing:border-box}
-html,body{margin:0}
-body{
-  background:var(--bg); color:var(--fg);
-  font-family:"Gentium Book Plus",Georgia,"Times New Roman",serif;
-  font-size:20px; line-height:1.75; -webkit-font-smoothing:antialiased;
-}
-.wrap{max-width:40rem;margin:0 auto;padding:0 1.25rem 8rem}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Project Index</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-/* toolbar */
-.bar{
-  position:sticky; top:0; z-index:20; background:var(--bg);
-  border-bottom:1px solid var(--rule);
-  margin:0 -1.25rem; padding:.7rem 1.25rem;
-  display:flex; gap:.55rem; align-items:center; flex-wrap:wrap;
-}
-button,select{
-  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.78rem;
-  color:var(--fg); background:transparent; border:1px solid var(--rule);
-  border-radius:2px; padding:.5rem .7rem; cursor:pointer;
-}
-button:hover,select:hover{border-color:var(--teal)}
-button:focus-visible,select:focus-visible,textarea:focus-visible,.s:focus-visible{
-  outline:2px solid var(--live); outline-offset:2px;
-}
-#play{background:var(--fg);color:var(--bg);border-color:var(--fg);font-weight:500;min-width:6rem}
-select{max-width:10rem}
-.rate{display:flex;align-items:center;gap:.4rem;font-family:"IBM Plex Mono",monospace;font-size:.72rem;color:var(--teal)}
-input[type=range]{width:5rem;accent-color:var(--teal)}
-/* the position slider stretches to fill whatever the toolbar has spare */
-#seek{width:auto;flex:1 1 6rem;min-width:4rem;margin-left:auto;cursor:pointer}
-.count{font-family:"IBM Plex Mono",monospace;font-size:.72rem;color:var(--teal)}
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
 
-/* paste view */
-#pasteView{padding-top:2.5rem}
-#pasteView h1{
-  font-family:"IBM Plex Mono",monospace; font-weight:500; font-size:.7rem;
-  letter-spacing:.2em; text-transform:uppercase; color:var(--teal); margin:0 0 1rem;
-}
-textarea{
-  width:100%; min-height:18rem; resize:vertical;
-  background:var(--panel); color:var(--fg);
-  border:1px solid var(--rule); border-radius:2px; padding:1rem;
-  font-family:inherit; font-size:1rem; line-height:1.6;
-}
-textarea::placeholder{color:var(--fg);opacity:.3}
-.actions{display:flex;gap:.6rem;margin-top:.9rem;margin-bottom:1.8rem}
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            overflow: hidden;
+        }
 
-/* google doc row */
-.docrow{display:flex;gap:.6rem;margin-bottom:1.2rem;flex-wrap:wrap}
-input[type=url]{
-  flex:1 1 14rem; min-width:0;
-  background:var(--panel); color:var(--fg);
-  border:1px solid var(--rule); border-radius:2px; padding:.5rem .7rem;
-  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.78rem;
-}
-input[type=url]:focus-visible{outline:2px solid var(--live);outline-offset:2px}
-.status{
-  font-family:"IBM Plex Mono",monospace; font-size:.72rem; line-height:1.7;
-  color:var(--teal); margin:.9rem 0 0; min-height:1.2rem;
-}
-.status.bad{color:var(--live)}
-.or{
-  font-family:"IBM Plex Mono",monospace; font-size:.7rem;
-  letter-spacing:.2em; text-transform:uppercase; color:var(--teal);
-  opacity:.7; margin:0 0 .8rem;
-}
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
 
-/* reading view */
-#text{margin-top:2.5rem}
-#text p{margin:0 0 1.4rem}
-.s{opacity:var(--dim);transition:opacity .3s ease;cursor:text;border-radius:2px}
-.s:hover{opacity:.75}
-body.idle .s{opacity:1}
-.s.done{opacity:calc(var(--dim) + .2)}
+        header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
 
-/* the cursor — where reading is, or where it will start */
-.s.cursor{
-  opacity:1;
-  box-shadow:-.7rem 0 0 -.62rem var(--teal);
-}
-.s.cursor.live{
-  color:var(--live);
-  box-shadow:-.7rem 0 0 -.62rem var(--live);
-}
-body.idle .s.cursor{background:var(--panel)}
+        header p {
+            font-size: 14px;
+            opacity: 0.95;
+        }
 
-.hint{font-family:"IBM Plex Mono",monospace;font-size:.7rem;color:var(--teal);margin-top:1.8rem;line-height:1.9}
-kbd{border:1px solid var(--rule);border-radius:2px;padding:.05rem .3rem}
-.hidden{display:none}
-@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
-@media(max-width:520px){
-  body{font-size:18px}
-  /* give the slider a whole row on a phone — it needs the width to be usable */
-  #seek{order:8;flex-basis:100%;margin-left:0}
-  .count{width:100%;margin-left:0;order:9}
-}
-</style>
+        .content {
+            padding: 40px 30px;
+        }
+
+        .file-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .file-item:hover {
+            background: #e9ecef;
+            transform: translateX(4px);
+        }
+
+        .file-icon {
+            font-size: 24px;
+            min-width: 24px;
+        }
+
+        .file-info {
+            flex: 1;
+        }
+
+        .file-name {
+            font-weight: 600;
+            color: #212529;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .file-desc {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            background: #667eea;
+            color: white;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .readme-item {
+            background: #fff3cd;
+        }
+
+        .html-item {
+            background: #d1ecf1;
+        }
+
+        footer {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+            font-size: 12px;
+            color: #6c757d;
+            text-align: center;
+        }
+    </style>
 </head>
-<body class="idle">
+<body>
+    <div class="container">
+        <header>
+            <h1>📦 Personal Project</h1>
+            <p>Index of resources and documentation</p>
+        </header>
 
-<div class="wrap">
+        <div class="content">
+            <div class="file-list">
+                <a href="README.md" class="file-item readme-item">
+                    <span class="file-icon">📄</span>
+                    <div class="file-info">
+                        <span class="file-name">README.md</span>
+                        <span class="file-desc">Project documentation and setup instructions</span>
+                    </div>
+                    <span class="status-badge">Doc</span>
+                </a>
 
-  <div class="bar hidden" id="bar">
-    <button id="play">Read</button>
-    <button id="prev" title="Previous sentence">&larr;</button>
-    <button id="next" title="Next sentence">&rarr;</button>
-    <select id="voice" aria-label="Voice"></select>
-    <label class="rate">speed
-      <input type="range" id="rate" min="0.6" max="1.5" step="0.05" value="0.95" aria-label="Speed">
-      <span id="rateVal">0.95</span>
-    </label>
-    <button id="reload" title="Fetch the page again">Refresh</button>
-    <button id="edit">New text</button>
-    <button id="theme" title="Light or dark">&#9788;</button>
-    <input type="range" id="seek" min="0" max="0" value="0" step="1" aria-label="Position in text">
-    <span class="count" id="count"></span>
-  </div>
+                <a href="read-aloud.html" class="file-item html-item">
+                    <span class="file-icon">🔊</span>
+                    <div class="file-info">
+                        <span class="file-name">read-aloud.html</span>
+                        <span class="file-desc">Main read-aloud application interface</span>
+                    </div>
+                    <span class="status-badge">App</span>
+                </a>
 
-  <section id="pasteView">
-    <div class="actions">
-      <button id="fetchDoc">Read Link</button>
-      <button id="spLecture">Read SP Lecture</button>
-      <button id="load">Read Text</button>
-      <button id="clear">Clear Text</button>
+                <a href="VoiceSum.html" class="file-item html-item">
+                    <span class="file-icon">📝</span>
+                    <div class="file-info">
+                        <span class="file-name">VoiceSum.html</span>
+                        <span class="file-desc">Voice summarization tool</span>
+                    </div>
+                    <span class="status-badge">App</span>
+                </a>
+            </div>
+        </div>
+
+        <footer>
+            <p>Personal Project Index • Maintained by brajahari</p>
+        </footer>
     </div>
-    <h1>Weblink</h1>
-    <div class="docrow">
-      <input type="url" id="docUrl" spellcheck="false" aria-label="Page or Google Doc link"
-             placeholder="https://&#8230; a web page or Google Doc link">
-    </div>
-    <p class="status" id="status" role="status" aria-live="polite"></p>
-
-    <p class="or">paste text</p>
-    <textarea id="input" placeholder="Paste here&#8230;" spellcheck="false"></textarea>
-    <p class="hint">
-      Click a sentence to put the cursor there. Reading starts at the cursor.<br>
-      The cursor follows along as it reads.<br>
-      <kbd>space</kbd> play or pause &nbsp;·&nbsp; <kbd>&larr;</kbd> <kbd>&rarr;</kbd> move the cursor
-    </p>
-  </section>
-
-  <article id="text"></article>
-</div>
-
-<script>
-(function(){
-"use strict";
-
-/* ─── Pronunciation. Left: what's written. Right: what to say.
-       Add your own lines whenever a word comes out wrong. ─── */
-var SAY = [
-  [/Bhagavad[-\s]?g(ī|i)t(ā|a)/gi, "Bhagavad Geeta"],
-  [/Śr(ī|i)mad[-\s]?Bh(ā|a)gavatam/gi, "Shreemad Bhaagavatam"],
-  [/K(ṛ|r)(ṣ|s)(ṇ|n)a/gi, "Krishna"],
-  [/Caitanya/gi, "Chaitanya"],
-  [/Vi(ṣ|s)(ṇ|n)u/gi, "Vishnu"],
-  [/Śr(ī|i)la/gi, "Shreela"],
-  [/Śr(ī|i)/gi, "Shree"],
-  [/Prabhup(ā|a)da/gi, "Prabhupaada"],
-  [/j(ñ|n)(ā|a)na/gi, "gyaana"],
-  [/br(ā|a)hma(ṇ|n)a/gi, "braahmana"],
-  [/Vai(ṣ|s)(ṇ|n)ava/gi, "Vaishnava"],
-  [/sanny(ā|a)s(ī|i)/gi, "sannyaasee"],
-  [/Hare/g, "Hah-ray"]
-];
-var CHARS = [
-  [/[śṣ]/g,"sh"],[/[ŚṢ]/g,"Sh"],[/ṛ/g,"ri"],[/Ṛ/g,"Ri"],
-  [/ñ/g,"ny"],[/Ñ/g,"Ny"],[/[ṁṅṇ]/g,"n"],[/[ṀṄṆ]/g,"N"],
-  [/ṭ/g,"t"],[/Ṭ/g,"T"],[/ḍ/g,"d"],[/Ḍ/g,"D"],[/ḥ/g,"h"],[/Ḥ/g,"H"]
-];
-var ABBR = /\b(Mr|Mrs|Ms|Dr|Sri|Srila|St|etc|vs|No|Ch|Bg|SB|Cc|Jr|Sr)\.\s*$/i;
-
-/* The doc that fills the box on startup. Any share or published link works — this is just the default. */
-var DOC_DEFAULT = "https://docs.google.com/document/d/e/2PACX-1vS_DNeREuq96b8rt_Nm8HqVo739-ZrwFB4azSrtxJU12zk0Vi1nNxnWCcybGNjeeGKpiESGVZUlUGMG/pub";
-
-var synth = window.speechSynthesis;
-function $(id){ return document.getElementById(id); }
-
-var bar=$("bar"), playBtn=$("play"), prevBtn=$("prev"), nextBtn=$("next"),
-    voiceSel=$("voice"), rate=$("rate"), rateVal=$("rateVal"), editBtn=$("edit"),
-    themeBtn=$("theme"), count=$("count"), textEl=$("text"), pasteView=$("pasteView"),
-    input=$("input"), loadBtn=$("load"), clearBtn=$("clear"), seek=$("seek"),
-    docUrl=$("docUrl"), fetchBtn=$("fetchDoc"), spLectureBtn=$("spLecture"), reloadBtn=$("reload"), status=$("status");
-
-/* idx IS the cursor: where reading is now, or where it starts next. */
-var sentences=[], nodes=[], idx=0, playing=false, keepAlive=null, voices=[], dragging=false;
-
-function remember(k,v){ try{ localStorage.setItem("rdr:"+k,v); }catch(e){} }
-function recall(k){ try{ return localStorage.getItem("rdr:"+k); }catch(e){ return null; } }
-
-/* ─── text in ─── */
-function stripHTML(html){
-  var doc = new DOMParser().parseFromString(html,"text/html");
-  var i, els = doc.querySelectorAll("script,style,noscript");
-  for(i=0;i<els.length;i++) els[i].remove();
-  els = doc.querySelectorAll("br");
-  for(i=0;i<els.length;i++) els[i].replaceWith("\n");
-  els = doc.querySelectorAll("p,div,li,tr,h1,h2,h3,h4,blockquote");
-  for(i=0;i<els.length;i++) els[i].appendChild(doc.createTextNode("\n"));
-  return doc.body ? doc.body.textContent : html;
-}
-
-function tidy(raw, isDoc){
-  var t = (raw||"").replace(/\r/g,"");
-  t = t.replace(/^\s*unsubscribe\b.*$/gim,"");
-  t = t.replace(/^\s*https?:\/\/\S+\s*$/gim,"");
-  t = t.replace(/^\s*©.*$/gm,"");
-  /* chrome a published-to-web Google Doc wraps its content in. The first two
-     phrases are precise enough to Google Docs to strip on any page; "Report
-     abuse" and "Learn More" are common enough on ordinary websites that
-     they're only safe to strip when the source is known to be a Doc. */
-  t = t.replace(/^\s*Published using Google Docs\s*$/gim,"");
-  t = t.replace(/^\s*Updated automatically every \d+ minutes\s*$/gim,"");
-  if (isDoc){
-    t = t.replace(/^\s*Report [Aa]buse\s*$/gim,"");
-    t = t.replace(/^\s*Learn [Mm]ore\s*$/gim,"");
-  }
-  t = t.replace(/[ \t]+/g," ");
-  t = t.replace(/\n{3,}/g,"\n\n");
-  return t.trim();
-}
-
-/* ─── fetching the source ───
-   Google Docs: the doc must be shared as "anyone with the link", and it's
-   read through /mobilebasic — plain HTML, delivered in one hop with a CORS
-   header on it. (The obvious /export?format=txt is a dead end: it 307s off
-   to googleusercontent and the redirect itself carries no CORS header, so
-   the browser refuses to follow it.)
-
-   Google echoes the page's own origin back in that header, and it will not
-   echo "null" — which is the origin of a page opened straight off the disk.
-   So a file:// copy can't read the doc directly and goes via r.jina.ai, a
-   public reader that fetches the page server-side and hands back plain text.
-   That service sees the link, so serve this page over http (a local server,
-   GitHub Pages) and the direct path is taken instead and nothing leaves.
-
-   Any other http(s) URL almost never gets a CORS header at all, so there's
-   no point trying a direct fetch first — it always goes through r.jina.ai,
-   which also does readability-style extraction (dropping nav/ads/etc.)
-   instead of the naive full-page dump stripHTML() does.
-
-   credentials:"omit" keeps cookies off the request — a request carrying them
-   can't be answered cross-origin at all. */
-var READER = "https://r.jina.ai/";
-
-/* Two Google Docs link shapes get a fast path: a share/edit link
-   (…/document/d/{id}/edit — needs "Anyone with the link") or a
-   published-to-web link (…/document/d/e/{id}/pub — already public). Google
-   echoes CORS headers back for both, so they're fetched directly.
-   Anything else that's a plain http(s) URL is still readable — it just goes
-   through the reader instead of a direct fetch (see fetchDoc). */
-function resolveDoc(u){
-  u = (u||"").trim();
-  var m = /\/document\/d\/e\/([A-Za-z0-9_-]{20,})/.exec(u);
-  if (m) return { page:"https://docs.google.com/document/d/e/"+m[1]+"/pub", direct:true, isDoc:true };
-  m = /\/document\/d\/([A-Za-z0-9_-]{16,})/.exec(u);
-  if (m) return { page:"https://docs.google.com/document/d/"+m[1]+"/mobilebasic", direct:true, isDoc:true };
-  m = /^[A-Za-z0-9_-]{16,}$/.exec(u);
-  if (m) return { page:"https://docs.google.com/document/d/"+m[0]+"/mobilebasic", direct:true, isDoc:true };
-  try {
-    var parsed = new URL(u);
-    if (parsed.protocol === "http:" || parsed.protocol === "https:")
-      return { page:u, direct:false, isDoc:false };
-  } catch(e){ /* not a URL at all */ }
-  return null;
-}
-
-function say(msg, bad){
-  status.textContent = msg || "";
-  status.classList.toggle("bad", !!bad);
-}
-
-function get(u){
-  return fetch(u, { credentials:"omit" }).then(function(r){
-    /* Google answers these itself and means them — no point asking anywhere else. */
-    if (r.status === 401 || r.status === 403) throw new Error("private");
-    if (r.status === 404) throw new Error("no-doc");
-    if (!r.ok) throw new Error("http-"+r.status);
-    return r.text();
-  });
-}
-function answered(e){ return /^(private|no-doc|http-)/.test(String(e && e.message)); }
-
-/* The reader hands the page back as markdown under a Title:/URL Source: preamble. */
-function unreader(t){
-  t = t.replace(/^[\s\S]*?\bMarkdown Content:[ \t]*\n/, "");
-  t = t.replace(/!\[[^\]]*\]\([^)]*\)/g, "");        // images
-  t = t.replace(/\[([^\]]+)\]\([^)]*\)/g, "$1");     // links down to their words
-  t = t.replace(/^[ \t]*#{1,6}[ \t]+/gm, "");        // heading marks
-  t = t.replace(/(\*\*|__)(.*?)\1/g, "$2");          // bold
-  return t;
-}
-
-/* Docs leads with the tab's name on its own line. It isn't part of the writing. */
-function untab(t, isDoc){ return isDoc ? t.replace(/^[ \t]*Tab \d+[ \t]*$/gm, "") : t; }
-
-function fetchDoc(url, then, onFail){
-  var doc = resolveDoc(url);
-  if (!doc){
-    say("That doesn't look like a usable link.", true);
-    if (onFail) onFail();
-    return;
-  }
-  var page = doc.page, isDoc = doc.isDoc;
-  var busy = document.activeElement;
-  fetchBtn.disabled = reloadBtn.disabled = true;
-
-  var attempt;
-  if (doc.direct){
-    say("Fetching the document…");
-    attempt = get(page).then(stripHTML)
-      .catch(function(e){
-        if (answered(e)) throw e;          // Google spoke — don't go asking a stranger
-        say("Opened from disk, so reading it through r.jina.ai…");
-        return get(READER + page).then(unreader);
-      });
-  } else {
-    say("Fetching the page through r.jina.ai…");
-    attempt = get(READER + page).then(unreader);
-  }
-
-  attempt
-    .then(function(t){
-      t = t.replace(/^\uFEFF/,"");        // the export leads with a BOM
-      if (/^[\s\S]{0,400}?(sign in|request access|you need permission)/i.test(t))
-        throw new Error("private");
-      var clean = tidy(untab(t, isDoc), isDoc);
-      if (!clean) throw new Error("empty");
-      remember("doc", url);
-      say("");
-      then(clean);
-    })
-    .catch(function(e){
-      var m = String(e && e.message);
-      say(
-        m === "private" ? (isDoc
-            ? "That doc isn't shared publicly. Open it → Share → General access → Anyone with the link → Viewer."
-            : "That page needs you to sign in — it can't be read from here.")
-        : m === "no-doc" ? (isDoc ? "No document at that link." : "Nothing found at that link.")
-        : m === "empty"  ? (isDoc ? "The document came back empty." : "The page came back empty.")
-        : "Couldn't reach it — check the connection, or paste the text below.",
-        true
-      );
-      if (onFail) onFail();
-    })
-    .then(function(){
-      fetchBtn.disabled = reloadBtn.disabled = false;
-      if (busy && busy.focus) busy.focus();
-    });
-}
-
-/* ─── split into sentences, keeping paragraph breaks ─── */
-function build(text){
-  var out = [];
-  var paras = text.split(/\n+/);
-  for (var i=0;i<paras.length;i++){
-    var p = paras[i].trim();
-    if (!p) continue;
-    /* A full stop only ends a sentence when something blank follows it. Without
-       that check "Bhagavad-gītā 4.9–11" and every URL get chopped mid-word. */
-    var chunks = p.match(/[\s\S]*?[.!?…]+["'”’)\]]*(?=\s|$)\s*|[\s\S]+$/g) || [p];
-    var buf = "";
-    for (var j=0;j<chunks.length;j++){
-      buf += chunks[j];
-      if (ABBR.test(buf)) continue;
-      if (buf.trim().length < 3) continue;
-      out.push({ text: buf.trim(), end:false });
-      buf = "";
-    }
-    if (buf.trim()) out.push({ text: buf.trim(), end:false });
-    if (out.length) out[out.length-1].end = true;
-  }
-  return out;
-}
-
-/* ─── what the voice says ─── */
-function spoken(s){
-  var t = s, i;
-  for (i=0;i<SAY.length;i++) t = t.replace(SAY[i][0], SAY[i][1]);
-  for (i=0;i<CHARS.length;i++) t = t.replace(CHARS[i][0], CHARS[i][1]);
-  t = t.normalize("NFD").replace(/[\u0300-\u036f]/g,"");
-  t = t.replace(/(\d+)\.(\d+)\s*[–-]\s*(\d+)/g,"chapter $1, verses $2 to $3");
-  t = t.replace(/(\d+)\.(\d+)/g,"chapter $1, verse $2");
-  return t.replace(/[-–—]/g," ").trim();
-}
-
-/* ─── render ─── */
-function render(){
-  textEl.innerHTML = "";
-  nodes = [];
-  var p = document.createElement("p");
-  for (var i=0;i<sentences.length;i++){
-    var span = document.createElement("span");
-    span.className = "s";
-    span.textContent = sentences[i].text + " ";
-    span.tabIndex = 0;
-    span.dataset.i = i;
-    nodes.push(span);
-    p.appendChild(span);
-    if (sentences[i].end){ textEl.appendChild(p); p = document.createElement("p"); }
-  }
-  if (p.childNodes.length) textEl.appendChild(p);
-  seek.max = String(Math.max(0, sentences.length-1));
-  mark();
-}
-
-function mark(){
-  for (var i=0;i<nodes.length;i++){
-    nodes[i].classList.toggle("cursor", i===idx);
-    nodes[i].classList.toggle("live", i===idx && playing);
-    nodes[i].classList.toggle("done", i<idx);
-  }
-  count.textContent = sentences.length ? (idx+1)+" / "+sentences.length : "";
-  if (!dragging) seek.value = String(idx);   // don't yank the handle out from under a finger
-}
-
-/* Only scroll when the cursor has drifted out of the comfortable middle band.
-   Re-centring every sentence makes the page crawl downwards under your eyes. */
-function scrollTo(i, instant){
-  var el = nodes[i];
-  if (!el) return;
-  var box = el.getBoundingClientRect();
-  var top = bar.classList.contains("hidden") ? 0 : bar.getBoundingClientRect().height;
-  var lo  = top + window.innerHeight * 0.18;
-  var hi  = top + (window.innerHeight - top) * 0.78;
-  if (box.top >= lo && box.bottom <= hi) return;   // already sitting comfortably — leave it be
-  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  window.scrollTo({
-    top: window.scrollY + box.top - (top + (window.innerHeight - top) * 0.38),
-    behavior: (reduce || instant) ? "auto" : "smooth"   // a drag wants to keep up, not glide
-  });
-}
-
-/* ─── voices ─── */
-function loadVoices(){
-  voices = synth.getVoices().filter(function(v){ return /^en/i.test(v.lang); });
-  if (!voices.length) voices = synth.getVoices();
-  voiceSel.innerHTML = "";
-  voices.forEach(function(v,i){
-    var o = document.createElement("option");
-    o.value = i;
-    o.textContent = v.name.replace(/\s*\(.*?\)\s*/g,"") + " · " + v.lang;
-    voiceSel.appendChild(o);
-  });
-  var saved = recall("voice"), pick = -1, i;
-  for (i=0;i<voices.length;i++) if (voices[i].name===saved) pick = i;
-  if (pick<0) for (i=0;i<voices.length;i++) if (/en[-_]IN/i.test(voices[i].lang)){ pick=i; break; }
-  if (pick<0) pick = 0;
-  voiceSel.value = String(Math.max(0,pick));
-}
-loadVoices();
-if (synth.addEventListener) synth.addEventListener("voiceschanged", loadVoices);
-else synth.onvoiceschanged = loadVoices;
-
-/* ─── speaking ─── */
-/* cancel() makes the browser fire end/error on the utterance we just killed.
-   Every speak() bumps `gen`, so those stale callbacks recognise they're dead
-   and stay quiet — otherwise each one advances a sentence and the whole thing
-   runs away down the page. */
-var gen = 0, lastKick = 0, retries = 0;
-
-/* Android's speech engine differs enough to need its own handling. */
-var MOBILE = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "");
-
-function speak(i){
-  var mine = ++gen;
-  synth.cancel();
-  if (i >= sentences.length){          // ran off the end — cursor rests on the last line
-    stop();
-    idx = sentences.length-1;
-    mark();
-    scrollTo(idx);
-    return;
-  }
-  idx = i;
-  var u = new SpeechSynthesisUtterance(spoken(sentences[i].text));
-  var v = voices[Number(voiceSel.value)];
-  if (v){ u.voice = v; u.lang = v.lang; }
-  u.rate = Number(rate.value);
-  u.onstart = function(){ if (mine === gen) retries = 0; };
-  function advance(){
-    if (!playing || mine !== gen) return;
-    if (dragging) return;              // you're scrubbing — idx is yours, not mine
-    /* Locked screen: the engine reports each sentence "finished" the instant it
-       starts, so advancing here would race to the end in silence. Hold position
-       and let watch() resume from this sentence once the screen is back.
-       Desktop keeps speaking in background tabs, so this only applies to phones. */
-    if (MOBILE && document.hidden) return;
-    retries = 0;
-    speak(idx+1);
-  }
-  u.onend = advance;
-  u.onerror = advance;
-  mark();
-  scrollTo(i);
-  lastKick = Date.now();
-  /* Android silently discards an utterance queued in the same tick as cancel(),
-     so let the cancel settle first. */
-  if (MOBILE) setTimeout(function(){ if (playing && mine === gen) synth.speak(u); }, 120);
-  else synth.speak(u);
-}
-
-/* Android also just stops sometimes — no end event, no error, nothing.
-   Poll for that silence and pick the reading back up. */
-function watch(){
-  if (!playing || document.hidden || dragging) return;
-  if (synth.speaking || synth.pending || synth.paused) return;
-  if (Date.now() - lastKick < 3000) return;      // a slow engine is still waking up
-  if (retries++ < 2) speak(idx);                 // retry this sentence
-  else { retries = 0; speak(idx+1); }            // it refuses — move on
-}
-
-function start(from){
-  if (!sentences.length) return;
-  if (typeof from === "number") idx = from;   // otherwise: from wherever the cursor sits
-  playing = true;
-  retries = 0;
-  document.body.classList.remove("idle");
-  playBtn.textContent = "Pause";
-  clearInterval(keepAlive);
-  keepAlive = setInterval(function(){
-    /* The pause/resume trick keeps desktop Chrome from cutting out at ~15s.
-       On Android it does the opposite — pause() there is a one-way door. */
-    if (!MOBILE && synth.speaking && !synth.paused){ synth.pause(); synth.resume(); }
-    watch();
-  }, MOBILE ? 1200 : 9000);
-  speak(idx);
-}
-
-function stop(){
-  playing = false;
-  gen++;                 // disown anything still in flight
-  clearInterval(keepAlive);
-  synth.cancel();
-  document.body.classList.add("idle");
-  playBtn.textContent = "Read";
-  mark();
-}
-
-/* ─── the cursor ─── */
-function place(i){
-  i = Math.max(0, Math.min(sentences.length-1, i));
-  idx = i;
-  if (playing) speak(i);      // already reading: pick up from the new spot
-  else { mark(); scrollTo(i); }
-}
-
-textEl.addEventListener("click", function(e){
-  var el = e.target.closest ? e.target.closest(".s") : null;
-  if (!el) return;
-  var sel = window.getSelection();
-  if (sel && !sel.isCollapsed) return;      // a drag to select, not a click
-  place(Number(el.dataset.i));
-});
-textEl.addEventListener("keydown", function(e){
-  if (e.key !== "Enter") return;
-  var el = e.target.closest ? e.target.closest(".s") : null;
-  if (!el) return;
-  e.preventDefault();
-  place(Number(el.dataset.i));
-  if (!playing) start();                    // Enter = put it there and go
-});
-
-/* ─── controls ─── */
-playBtn.addEventListener("click", function(){ playing ? stop() : start(); });
-prevBtn.addEventListener("click", function(){ place(idx-1); });
-nextBtn.addEventListener("click", function(){ place(idx+1); });
-
-/* Dragging only moves the cursor and scrolls — speaking every sentence you slide
-   past would stutter. The voice picks up when you let go. */
-seek.addEventListener("input", function(){
-  if (!sentences.length) return;
-  dragging = true;
-  idx = Math.max(0, Math.min(sentences.length-1, Number(seek.value)));
-  mark();
-  scrollTo(idx, true);
-});
-seek.addEventListener("change", function(){
-  dragging = false;
-  if (playing) speak(idx);
-});
-
-rate.addEventListener("input", function(){
-  rateVal.textContent = Number(rate.value).toFixed(2);
-  remember("rate", rate.value);
-  if (playing) speak(idx);
-});
-voiceSel.addEventListener("change", function(){
-  var v = voices[Number(voiceSel.value)];
-  if (v) remember("voice", v.name);
-  if (playing) speak(idx);
-});
-themeBtn.addEventListener("click", function(){
-  var now = document.documentElement.getAttribute("data-theme")==="day" ? "night" : "day";
-  document.documentElement.setAttribute("data-theme", now);
-  remember("theme", now);
-});
-
-/* back to the front page — the reading view goes away entirely */
-function toPaste(){
-  stop();
-  pasteView.classList.remove("hidden");
-  bar.classList.add("hidden");
-  textEl.innerHTML = "";
-  nodes = []; sentences = []; idx = 0;
-}
-
-editBtn.addEventListener("click", function(){
-  toPaste();
-  say("");
-  input.focus();
-});
-
-clearBtn.addEventListener("click", function(){ input.value=""; input.focus(); });
-
-/* text (from anywhere) → the reading view */
-function present(t){
-  sentences = build(t);
-  if (!sentences.length) return false;
-  idx = 0;
-  pasteView.classList.add("hidden");
-  bar.classList.remove("hidden");
-  render();
-  window.scrollTo({ top:0 });
-  return true;
-}
-
-loadBtn.addEventListener("click", function(){
-  var t = tidy(input.value);
-  if (!t || !present(t)) input.focus();
-});
-
-fetchBtn.addEventListener("click", function(){ fetchDoc(docUrl.value, present); });
-spLectureBtn.addEventListener("click", function(){
-  fetchDoc(DOC_DEFAULT, present);
-});
-docUrl.addEventListener("keydown", function(e){
-  if (e.key === "Enter"){ e.preventDefault(); fetchDoc(docUrl.value, present); }
-});
-/* same doc, edited since — pick up the new text. If it fails, drop back to the
-   front page so the reason is actually on screen instead of behind the article. */
-reloadBtn.addEventListener("click", function(){
-  stop();
-  fetchDoc(docUrl.value, present, toPaste);
-});
-
-input.addEventListener("paste", function(e){
-  var html = e.clipboardData && e.clipboardData.getData("text/html");
-  if (!html) return;
-  e.preventDefault();
-  input.value = tidy(stripHTML(html));
-});
-
-document.addEventListener("keydown", function(e){
-  if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
-  if (!sentences.length) return;
-  if (e.key === " "){ e.preventDefault(); playing ? stop() : start(); }
-  if (e.key === "ArrowRight"){ e.preventDefault(); place(idx+1); }
-  if (e.key === "ArrowLeft"){ e.preventDefault(); place(idx-1); }
-});
-
-/* Back from a locked screen — pick the sentence up again without waiting for the poll. */
-document.addEventListener("visibilitychange", function(){
-  if (!document.hidden && playing) setTimeout(watch, 300);
-});
-
-window.addEventListener("beforeunload", function(){ synth.cancel(); });
-
-/* ─── restore small preferences, then go and get the doc ─── */
-(function(){
-  var th = recall("theme");
-  if (th) document.documentElement.setAttribute("data-theme", th);
-  var r = recall("rate");
-  if (r) rate.value = r;
-  rateVal.textContent = Number(rate.value).toFixed(2);
-
-  /* ?doc=<link or id> in the address bar wins, then the last doc read, then the default. */
-  var q = null;
-  try { q = new URLSearchParams(location.search).get("doc"); } catch(e){}
-  docUrl.value = q || recall("doc") || DOC_DEFAULT;
-
-  input.focus();
-  // User must click "Fetch doc" to load — don't auto-fetch
-})();
-
-})();
-</script>
 </body>
 </html>
