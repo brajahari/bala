@@ -62,7 +62,27 @@ textarea{
   font-family:inherit; font-size:1rem; line-height:1.6;
 }
 textarea::placeholder{color:var(--fg);opacity:.3}
-.actions{display:flex;gap:.6rem;margin-top:.9rem}
+.actions{display:flex;gap:.6rem;margin-top:.9rem;margin-bottom:1.8rem}
+
+/* google doc row */
+.docrow{display:flex;gap:.6rem;margin-bottom:1.2rem;flex-wrap:wrap}
+input[type=url]{
+  flex:1 1 14rem; min-width:0;
+  background:var(--panel); color:var(--fg);
+  border:1px solid var(--rule); border-radius:2px; padding:.5rem .7rem;
+  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.78rem;
+}
+input[type=url]:focus-visible{outline:2px solid var(--live);outline-offset:2px}
+.status{
+  font-family:"IBM Plex Mono",monospace; font-size:.72rem; line-height:1.7;
+  color:var(--teal); margin:.9rem 0 0; min-height:1.2rem;
+}
+.status.bad{color:var(--live)}
+.or{
+  font-family:"IBM Plex Mono",monospace; font-size:.7rem;
+  letter-spacing:.2em; text-transform:uppercase; color:var(--teal);
+  opacity:.7; margin:0 0 .8rem;
+}
 
 /* reading view */
 #text{margin-top:2.5rem}
@@ -108,6 +128,7 @@ kbd{border:1px solid var(--rule);border-radius:2px;padding:.05rem .3rem}
       <input type="range" id="rate" min="0.6" max="1.5" step="0.05" value="0.95" aria-label="Speed">
       <span id="rateVal">0.95</span>
     </label>
+    <button id="reload" title="Fetch the page again">Refresh</button>
     <button id="edit">New text</button>
     <button id="theme" title="Light or dark">&#9788;</button>
     <input type="range" id="seek" min="0" max="0" value="0" step="1" aria-label="Position in text">
@@ -115,12 +136,21 @@ kbd{border:1px solid var(--rule);border-radius:2px;padding:.05rem .3rem}
   </div>
 
   <section id="pasteView">
-    <h1>Paste text, then read it aloud</h1>
-    <textarea id="input" placeholder="Paste here&#8230;" spellcheck="false"></textarea>
     <div class="actions">
-      <button id="load">Read this</button>
-      <button id="clear">Clear</button>
+      <button id="fetchDoc">Read Link</button>
+      <button id="spLecture">Read SP Lecture</button>
+      <button id="load">Read Text</button>
+      <button id="clear">Clear Text</button>
     </div>
+    <h1>Weblink</h1>
+    <div class="docrow">
+      <input type="url" id="docUrl" spellcheck="false" aria-label="Page or Google Doc link"
+             placeholder="https://&#8230; a web page or Google Doc link">
+    </div>
+    <p class="status" id="status" role="status" aria-live="polite"></p>
+
+    <p class="or">paste text</p>
+    <textarea id="input" placeholder="Paste here&#8230;" spellcheck="false"></textarea>
     <p class="hint">
       Click a sentence to put the cursor there. Reading starts at the cursor.<br>
       The cursor follows along as it reads.<br>
@@ -159,13 +189,17 @@ var CHARS = [
 ];
 var ABBR = /\b(Mr|Mrs|Ms|Dr|Sri|Srila|St|etc|vs|No|Ch|Bg|SB|Cc|Jr|Sr)\.\s*$/i;
 
+/* The doc that fills the box on startup. Any share or published link works — this is just the default. */
+var DOC_DEFAULT = "https://docs.google.com/document/d/e/2PACX-1vS_DNeREuq96b8rt_Nm8HqVo739-ZrwFB4azSrtxJU12zk0Vi1nNxnWCcybGNjeeGKpiESGVZUlUGMG/pub";
+
 var synth = window.speechSynthesis;
 function $(id){ return document.getElementById(id); }
 
 var bar=$("bar"), playBtn=$("play"), prevBtn=$("prev"), nextBtn=$("next"),
     voiceSel=$("voice"), rate=$("rate"), rateVal=$("rateVal"), editBtn=$("edit"),
     themeBtn=$("theme"), count=$("count"), textEl=$("text"), pasteView=$("pasteView"),
-    input=$("input"), loadBtn=$("load"), clearBtn=$("clear"), seek=$("seek");
+    input=$("input"), loadBtn=$("load"), clearBtn=$("clear"), seek=$("seek"),
+    docUrl=$("docUrl"), fetchBtn=$("fetchDoc"), spLectureBtn=$("spLecture"), reloadBtn=$("reload"), status=$("status");
 
 /* idx IS the cursor: where reading is now, or where it starts next. */
 var sentences=[], nodes=[], idx=0, playing=false, keepAlive=null, voices=[], dragging=false;
@@ -185,14 +219,153 @@ function stripHTML(html){
   return doc.body ? doc.body.textContent : html;
 }
 
-function tidy(raw){
+function tidy(raw, isDoc){
   var t = (raw||"").replace(/\r/g,"");
   t = t.replace(/^\s*unsubscribe\b.*$/gim,"");
   t = t.replace(/^\s*https?:\/\/\S+\s*$/gim,"");
   t = t.replace(/^\s*©.*$/gm,"");
+  /* chrome a published-to-web Google Doc wraps its content in. The first two
+     phrases are precise enough to Google Docs to strip on any page; "Report
+     abuse" and "Learn More" are common enough on ordinary websites that
+     they're only safe to strip when the source is known to be a Doc. */
+  t = t.replace(/^\s*Published using Google Docs\s*$/gim,"");
+  t = t.replace(/^\s*Updated automatically every \d+ minutes\s*$/gim,"");
+  if (isDoc){
+    t = t.replace(/^\s*Report [Aa]buse\s*$/gim,"");
+    t = t.replace(/^\s*Learn [Mm]ore\s*$/gim,"");
+  }
   t = t.replace(/[ \t]+/g," ");
   t = t.replace(/\n{3,}/g,"\n\n");
   return t.trim();
+}
+
+/* ─── fetching the source ───
+   Google Docs: the doc must be shared as "anyone with the link", and it's
+   read through /mobilebasic — plain HTML, delivered in one hop with a CORS
+   header on it. (The obvious /export?format=txt is a dead end: it 307s off
+   to googleusercontent and the redirect itself carries no CORS header, so
+   the browser refuses to follow it.)
+
+   Google echoes the page's own origin back in that header, and it will not
+   echo "null" — which is the origin of a page opened straight off the disk.
+   So a file:// copy can't read the doc directly and goes via r.jina.ai, a
+   public reader that fetches the page server-side and hands back plain text.
+   That service sees the link, so serve this page over http (a local server,
+   GitHub Pages) and the direct path is taken instead and nothing leaves.
+
+   Any other http(s) URL almost never gets a CORS header at all, so there's
+   no point trying a direct fetch first — it always goes through r.jina.ai,
+   which also does readability-style extraction (dropping nav/ads/etc.)
+   instead of the naive full-page dump stripHTML() does.
+
+   credentials:"omit" keeps cookies off the request — a request carrying them
+   can't be answered cross-origin at all. */
+var READER = "https://r.jina.ai/";
+
+/* Two Google Docs link shapes get a fast path: a share/edit link
+   (…/document/d/{id}/edit — needs "Anyone with the link") or a
+   published-to-web link (…/document/d/e/{id}/pub — already public). Google
+   echoes CORS headers back for both, so they're fetched directly.
+   Anything else that's a plain http(s) URL is still readable — it just goes
+   through the reader instead of a direct fetch (see fetchDoc). */
+function resolveDoc(u){
+  u = (u||"").trim();
+  var m = /\/document\/d\/e\/([A-Za-z0-9_-]{20,})/.exec(u);
+  if (m) return { page:"https://docs.google.com/document/d/e/"+m[1]+"/pub", direct:true, isDoc:true };
+  m = /\/document\/d\/([A-Za-z0-9_-]{16,})/.exec(u);
+  if (m) return { page:"https://docs.google.com/document/d/"+m[1]+"/mobilebasic", direct:true, isDoc:true };
+  m = /^[A-Za-z0-9_-]{16,}$/.exec(u);
+  if (m) return { page:"https://docs.google.com/document/d/"+m[0]+"/mobilebasic", direct:true, isDoc:true };
+  try {
+    var parsed = new URL(u);
+    if (parsed.protocol === "http:" || parsed.protocol === "https:")
+      return { page:u, direct:false, isDoc:false };
+  } catch(e){ /* not a URL at all */ }
+  return null;
+}
+
+function say(msg, bad){
+  status.textContent = msg || "";
+  status.classList.toggle("bad", !!bad);
+}
+
+function get(u){
+  return fetch(u, { credentials:"omit" }).then(function(r){
+    /* Google answers these itself and means them — no point asking anywhere else. */
+    if (r.status === 401 || r.status === 403) throw new Error("private");
+    if (r.status === 404) throw new Error("no-doc");
+    if (!r.ok) throw new Error("http-"+r.status);
+    return r.text();
+  });
+}
+function answered(e){ return /^(private|no-doc|http-)/.test(String(e && e.message)); }
+
+/* The reader hands the page back as markdown under a Title:/URL Source: preamble. */
+function unreader(t){
+  t = t.replace(/^[\s\S]*?\bMarkdown Content:[ \t]*\n/, "");
+  t = t.replace(/!\[[^\]]*\]\([^)]*\)/g, "");        // images
+  t = t.replace(/\[([^\]]+)\]\([^)]*\)/g, "$1");     // links down to their words
+  t = t.replace(/^[ \t]*#{1,6}[ \t]+/gm, "");        // heading marks
+  t = t.replace(/(\*\*|__)(.*?)\1/g, "$2");          // bold
+  return t;
+}
+
+/* Docs leads with the tab's name on its own line. It isn't part of the writing. */
+function untab(t, isDoc){ return isDoc ? t.replace(/^[ \t]*Tab \d+[ \t]*$/gm, "") : t; }
+
+function fetchDoc(url, then, onFail){
+  var doc = resolveDoc(url);
+  if (!doc){
+    say("That doesn't look like a usable link.", true);
+    if (onFail) onFail();
+    return;
+  }
+  var page = doc.page, isDoc = doc.isDoc;
+  var busy = document.activeElement;
+  fetchBtn.disabled = reloadBtn.disabled = true;
+
+  var attempt;
+  if (doc.direct){
+    say("Fetching the document…");
+    attempt = get(page).then(stripHTML)
+      .catch(function(e){
+        if (answered(e)) throw e;          // Google spoke — don't go asking a stranger
+        say("Opened from disk, so reading it through r.jina.ai…");
+        return get(READER + page).then(unreader);
+      });
+  } else {
+    say("Fetching the page through r.jina.ai…");
+    attempt = get(READER + page).then(unreader);
+  }
+
+  attempt
+    .then(function(t){
+      t = t.replace(/^\uFEFF/,"");        // the export leads with a BOM
+      if (/^[\s\S]{0,400}?(sign in|request access|you need permission)/i.test(t))
+        throw new Error("private");
+      var clean = tidy(untab(t, isDoc), isDoc);
+      if (!clean) throw new Error("empty");
+      remember("doc", url);
+      say("");
+      then(clean);
+    })
+    .catch(function(e){
+      var m = String(e && e.message);
+      say(
+        m === "private" ? (isDoc
+            ? "That doc isn't shared publicly. Open it → Share → General access → Anyone with the link → Viewer."
+            : "That page needs you to sign in — it can't be read from here.")
+        : m === "no-doc" ? (isDoc ? "No document at that link." : "Nothing found at that link.")
+        : m === "empty"  ? (isDoc ? "The document came back empty." : "The page came back empty.")
+        : "Couldn't reach it — check the connection, or paste the text below.",
+        true
+      );
+      if (onFail) onFail();
+    })
+    .then(function(){
+      fetchBtn.disabled = reloadBtn.disabled = false;
+      if (busy && busy.focus) busy.focus();
+    });
 }
 
 /* ─── split into sentences, keeping paragraph breaks ─── */
@@ -202,7 +375,9 @@ function build(text){
   for (var i=0;i<paras.length;i++){
     var p = paras[i].trim();
     if (!p) continue;
-    var chunks = p.match(/[^.!?…]+[.!?…]+["'”’)\]]*\s*|[^.!?…]+$/g) || [p];
+    /* A full stop only ends a sentence when something blank follows it. Without
+       that check "Bhagavad-gītā 4.9–11" and every URL get chopped mid-word. */
+    var chunks = p.match(/[\s\S]*?[.!?…]+["'”’)\]]*(?=\s|$)\s*|[\s\S]+$/g) || [p];
     var buf = "";
     for (var j=0;j<chunks.length;j++){
       buf += chunks[j];
@@ -440,27 +615,52 @@ themeBtn.addEventListener("click", function(){
   remember("theme", now);
 });
 
-editBtn.addEventListener("click", function(){
+/* back to the front page — the reading view goes away entirely */
+function toPaste(){
   stop();
   pasteView.classList.remove("hidden");
   bar.classList.add("hidden");
   textEl.innerHTML = "";
   nodes = []; sentences = []; idx = 0;
+}
+
+editBtn.addEventListener("click", function(){
+  toPaste();
+  say("");
   input.focus();
 });
 
 clearBtn.addEventListener("click", function(){ input.value=""; input.focus(); });
 
-loadBtn.addEventListener("click", function(){
-  var t = tidy(input.value);
-  if (!t){ input.focus(); return; }
+/* text (from anywhere) → the reading view */
+function present(t){
   sentences = build(t);
-  if (!sentences.length){ input.focus(); return; }
+  if (!sentences.length) return false;
   idx = 0;
   pasteView.classList.add("hidden");
   bar.classList.remove("hidden");
   render();
   window.scrollTo({ top:0 });
+  return true;
+}
+
+loadBtn.addEventListener("click", function(){
+  var t = tidy(input.value);
+  if (!t || !present(t)) input.focus();
+});
+
+fetchBtn.addEventListener("click", function(){ fetchDoc(docUrl.value, present); });
+spLectureBtn.addEventListener("click", function(){
+  fetchDoc(DOC_DEFAULT, present);
+});
+docUrl.addEventListener("keydown", function(e){
+  if (e.key === "Enter"){ e.preventDefault(); fetchDoc(docUrl.value, present); }
+});
+/* same doc, edited since — pick up the new text. If it fails, drop back to the
+   front page so the reason is actually on screen instead of behind the article. */
+reloadBtn.addEventListener("click", function(){
+  stop();
+  fetchDoc(docUrl.value, present, toPaste);
 });
 
 input.addEventListener("paste", function(e){
@@ -485,14 +685,21 @@ document.addEventListener("visibilitychange", function(){
 
 window.addEventListener("beforeunload", function(){ synth.cancel(); });
 
-/* ─── restore small preferences only ─── */
+/* ─── restore small preferences, then go and get the doc ─── */
 (function(){
   var th = recall("theme");
   if (th) document.documentElement.setAttribute("data-theme", th);
   var r = recall("rate");
   if (r) rate.value = r;
   rateVal.textContent = Number(rate.value).toFixed(2);
+
+  /* ?doc=<link or id> in the address bar wins, then the last doc read, then the default. */
+  var q = null;
+  try { q = new URLSearchParams(location.search).get("doc"); } catch(e){}
+  docUrl.value = q || recall("doc") || DOC_DEFAULT;
+
   input.focus();
+  // User must click "Fetch doc" to load — don't auto-fetch
 })();
 
 })();
