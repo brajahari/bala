@@ -30,8 +30,9 @@ body{
   position:sticky; top:0; z-index:20; background:var(--bg);
   border-bottom:1px solid var(--rule);
   margin:0 -1.25rem; padding:.7rem 1.25rem;
-  display:flex; gap:.55rem; align-items:center; flex-wrap:wrap;
+  display:flex; flex-direction:column; gap:.6rem;
 }
+.bar>div{display:flex; gap:.55rem; align-items:center; flex-wrap:wrap}
 button,select{
   font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.78rem;
   color:var(--fg); background:transparent; border:1px solid var(--rule);
@@ -43,10 +44,11 @@ button:focus-visible,select:focus-visible,textarea:focus-visible,.s:focus-visibl
 }
 #play{background:var(--fg);color:var(--bg);border-color:var(--fg);font-weight:500;min-width:6rem}
 select{max-width:10rem}
-.rate{display:flex;align-items:center;gap:.4rem;font-family:"IBM Plex Mono",monospace;font-size:.72rem;color:var(--teal)}
-input[type=range]{width:5rem;accent-color:var(--teal)}
-/* the position slider stretches to fill whatever the toolbar has spare */
-#seek{width:auto;flex:1 1 6rem;min-width:4rem;margin-left:auto;cursor:pointer}
+.rate{flex:1 1 auto;display:flex;align-items:center;gap:.4rem;font-family:"IBM Plex Mono",monospace;font-size:.72rem;color:var(--teal)}
+input[type=range]{accent-color:var(--teal)}
+/* both sliders stretch to fill their row */
+#rate,#seek{width:auto;flex:1 1 6rem;cursor:pointer}
+#seek{margin-left:auto}
 .count{font-family:"IBM Plex Mono",monospace;font-size:.72rem;color:var(--teal)}
 
 /* paste view */
@@ -109,9 +111,6 @@ kbd{border:1px solid var(--rule);border-radius:2px;padding:.05rem .3rem}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 @media(max-width:520px){
   body{font-size:18px}
-  /* give the slider a whole row on a phone — it needs the width to be usable */
-  #seek{order:8;flex-basis:100%;margin-left:0}
-  .count{width:100%;margin-left:0;order:9}
 }
 </style>
 </head>
@@ -120,19 +119,22 @@ kbd{border:1px solid var(--rule);border-radius:2px;padding:.05rem .3rem}
 <div class="wrap">
 
   <div class="bar hidden" id="bar">
-    <button id="play">Read</button>
-    <button id="prev" title="Previous sentence">&larr;</button>
-    <button id="next" title="Next sentence">&rarr;</button>
-    <select id="voice" aria-label="Voice"></select>
-    <label class="rate">speed
-      <input type="range" id="rate" min="0.6" max="1.5" step="0.05" value="0.95" aria-label="Speed">
-      <span id="rateVal">0.95</span>
-    </label>
-    <button id="reload" title="Fetch the page again">Refresh</button>
-    <button id="edit">New text</button>
-    <button id="theme" title="Light or dark">&#9788;</button>
-    <input type="range" id="seek" min="0" max="0" value="0" step="1" aria-label="Position in text">
-    <span class="count" id="count"></span>
+    <div class="row1">
+      <button id="play">Read</button>
+      <button id="edit">New text</button>
+      <select id="voice" aria-label="Voice"></select>
+    </div>
+    <div class="row2">
+      <label class="rate">speed
+        <input type="range" id="rate" min="0.6" max="1.5" step="0.05" value="0.95" aria-label="Speed">
+        <span id="rateVal">0.95</span>
+      </label>
+    </div>
+    <div class="row3">
+      <button id="theme" title="Light or dark">&#9788;</button>
+      <input type="range" id="seek" min="0" max="0" value="0" step="1" aria-label="Position in text">
+      <span class="count" id="count"></span>
+    </div>
   </div>
 
   <section id="pasteView">
@@ -140,7 +142,6 @@ kbd{border:1px solid var(--rule);border-radius:2px;padding:.05rem .3rem}
       <button id="fetchDoc">Read Link</button>
       <button id="spLecture">Read SP Lecture</button>
       <button id="load">Read Text</button>
-      <button id="clear">Clear Text</button>
     </div>
     <h1>Weblink</h1>
     <div class="docrow">
@@ -183,23 +184,23 @@ var SAY = [
   [/Hare/g, "Hah-ray"]
 ];
 var CHARS = [
-  [/[śṣ]/g,"sh"],[/[ŚṢ]/g,"Sh"],[/ṛ/g,"ri"],[/Ṛ/g,"Ri"],
-  [/ñ/g,"ny"],[/Ñ/g,"Ny"],[/[ṁṅṇ]/g,"n"],[/[ṀṄṆ]/g,"N"],
-  [/ṭ/g,"t"],[/Ṭ/g,"T"],[/ḍ/g,"d"],[/Ḍ/g,"D"],[/ḥ/g,"h"],[/Ḥ/g,"H"]
+  [/[śṣ]/gi,"sh"],[/ṛ/gi,"ri"],
+  [/ñ/gi,"ny"],[/[ṁṅṇ]/gi,"n"],
+  [/ṭ/gi,"t"],[/ḍ/gi,"d"],[/ḥ/gi,"h"]
 ];
 var ABBR = /\b(Mr|Mrs|Ms|Dr|Sri|Srila|St|etc|vs|No|Ch|Bg|SB|Cc|Jr|Sr)\.\s*$/i;
 
 /* The doc that fills the box on startup. Any share or published link works — this is just the default. */
-var DOC_DEFAULT = "https://docs.google.com/document/d/e/2PACX-1vS_DNeREuq96b8rt_Nm8HqVo739-ZrwFB4azSrtxJU12zk0Vi1nNxnWCcybGNjeeGKpiESGVZUlUGMG/pub";
+var DOC_DEFAULT = "https://vedabase.io/en/library/bg/1/";
 
 var synth = window.speechSynthesis;
 function $(id){ return document.getElementById(id); }
 
-var bar=$("bar"), playBtn=$("play"), prevBtn=$("prev"), nextBtn=$("next"),
+var bar=$("bar"), playBtn=$("play"),
     voiceSel=$("voice"), rate=$("rate"), rateVal=$("rateVal"), editBtn=$("edit"),
     themeBtn=$("theme"), count=$("count"), textEl=$("text"), pasteView=$("pasteView"),
-    input=$("input"), loadBtn=$("load"), clearBtn=$("clear"), seek=$("seek"),
-    docUrl=$("docUrl"), fetchBtn=$("fetchDoc"), spLectureBtn=$("spLecture"), reloadBtn=$("reload"), status=$("status");
+    input=$("input"), loadBtn=$("load"), seek=$("seek"),
+    docUrl=$("docUrl"), fetchBtn=$("fetchDoc"), spLectureBtn=$("spLecture"), status=$("status");
 
 /* idx IS the cursor: where reading is now, or where it starts next. */
 var sentences=[], nodes=[], idx=0, playing=false, keepAlive=null, voices=[], dragging=false;
@@ -259,7 +260,9 @@ function tidy(raw, isDoc){
    instead of the naive full-page dump stripHTML() does.
 
    credentials:"omit" keeps cookies off the request — a request carrying them
-   can't be answered cross-origin at all. */
+   can't be answered cross-origin at all. cache:"no-store" keeps the browser's
+   own HTTP cache from quietly handing back yesterday's fetch instead of
+   asking the network again. */
 var READER = "https://r.jina.ai/";
 
 /* Two Google Docs link shapes get a fast path: a share/edit link
@@ -290,7 +293,7 @@ function say(msg, bad){
 }
 
 function get(u){
-  return fetch(u, { credentials:"omit" }).then(function(r){
+  return fetch(u, { credentials:"omit", cache:"no-store" }).then(function(r){
     /* Google answers these itself and means them — no point asking anywhere else. */
     if (r.status === 401 || r.status === 403) throw new Error("private");
     if (r.status === 404) throw new Error("no-doc");
@@ -313,7 +316,7 @@ function unreader(t){
 /* Docs leads with the tab's name on its own line. It isn't part of the writing. */
 function untab(t, isDoc){ return isDoc ? t.replace(/^[ \t]*Tab \d+[ \t]*$/gm, "") : t; }
 
-function fetchDoc(url, then, onFail){
+function fetchDoc(url, then, onFail, skipRemember){
   var doc = resolveDoc(url);
   if (!doc){
     say("That doesn't look like a usable link.", true);
@@ -322,7 +325,7 @@ function fetchDoc(url, then, onFail){
   }
   var page = doc.page, isDoc = doc.isDoc;
   var busy = document.activeElement;
-  fetchBtn.disabled = reloadBtn.disabled = true;
+  fetchBtn.disabled = true;
 
   var attempt;
   if (doc.direct){
@@ -345,7 +348,7 @@ function fetchDoc(url, then, onFail){
         throw new Error("private");
       var clean = tidy(untab(t, isDoc), isDoc);
       if (!clean) throw new Error("empty");
-      remember("doc", url);
+      if (!skipRemember) remember("doc", url);
       say("");
       then(clean);
     })
@@ -363,7 +366,7 @@ function fetchDoc(url, then, onFail){
       if (onFail) onFail();
     })
     .then(function(){
-      fetchBtn.disabled = reloadBtn.disabled = false;
+      fetchBtn.disabled = false;
       if (busy && busy.focus) busy.focus();
     });
 }
@@ -582,8 +585,6 @@ textEl.addEventListener("keydown", function(e){
 
 /* ─── controls ─── */
 playBtn.addEventListener("click", function(){ playing ? stop() : start(); });
-prevBtn.addEventListener("click", function(){ place(idx-1); });
-nextBtn.addEventListener("click", function(){ place(idx+1); });
 
 /* Dragging only moves the cursor and scrolls — speaking every sentence you slide
    past would stutter. The voice picks up when you let go. */
@@ -630,8 +631,6 @@ editBtn.addEventListener("click", function(){
   input.focus();
 });
 
-clearBtn.addEventListener("click", function(){ input.value=""; input.focus(); });
-
 /* text (from anywhere) → the reading view */
 function present(t){
   sentences = build(t);
@@ -651,16 +650,10 @@ loadBtn.addEventListener("click", function(){
 
 fetchBtn.addEventListener("click", function(){ fetchDoc(docUrl.value, present); });
 spLectureBtn.addEventListener("click", function(){
-  fetchDoc(DOC_DEFAULT, present);
+  fetchDoc(DOC_DEFAULT, present, null, true);
 });
 docUrl.addEventListener("keydown", function(e){
   if (e.key === "Enter"){ e.preventDefault(); fetchDoc(docUrl.value, present); }
-});
-/* same doc, edited since — pick up the new text. If it fails, drop back to the
-   front page so the reason is actually on screen instead of behind the article. */
-reloadBtn.addEventListener("click", function(){
-  stop();
-  fetchDoc(docUrl.value, present, toPaste);
 });
 
 input.addEventListener("paste", function(e){
