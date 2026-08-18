@@ -10,10 +10,12 @@
 <style>
 :root{
   --bg:#15171F; --fg:#DDD7CA; --live:#E3A73B; --teal:#5C8A81;
+  --accent:#6EC1E4; --accent-rgb:110,193,228;
   --rule:rgba(221,215,202,.16); --panel:rgba(221,215,202,.05); --dim:.36;
 }
 html[data-theme="day"]{
   --bg:#E9E7DF; --fg:#23252E; --live:#9C6408; --teal:#35635A;
+  --accent:#1E7EB0; --accent-rgb:30,126,176;
   --rule:rgba(35,37,46,.16); --panel:rgba(35,37,46,.04); --dim:.4;
 }
 *{box-sizing:border-box}
@@ -39,6 +41,8 @@ button,select{
   border-radius:2px; padding:.5rem .7rem; cursor:pointer;
 }
 button:hover,select:hover{border-color:var(--teal)}
+.highlight{color:var(--accent); border-color:var(--accent); background:rgba(var(--accent-rgb),.12)}
+.highlight:hover{background:rgba(var(--accent-rgb),.22); border-color:var(--accent)}
 button:focus-visible,select:focus-visible,textarea:focus-visible,.s:focus-visible{
   outline:2px solid var(--live); outline-offset:2px;
 }
@@ -53,10 +57,6 @@ input[type=range]{accent-color:var(--teal)}
 
 /* paste view */
 #pasteView{padding-top:2.5rem}
-#pasteView h1{
-  font-family:"IBM Plex Mono",monospace; font-weight:500; font-size:.7rem;
-  letter-spacing:.2em; text-transform:uppercase; color:var(--teal); margin:0;
-}
 .h1row{display:flex; align-items:center; gap:.6rem; margin:0 0 1rem}
 textarea{
   width:100%; min-height:18rem; resize:vertical;
@@ -88,11 +88,6 @@ input[type=url]:focus-visible{outline:2px solid var(--live);outline-offset:2px}
   cursor:pointer; opacity:.85;
 }
 .trylink:hover{border-color:var(--teal); opacity:1}
-.or{
-  font-family:"IBM Plex Mono",monospace; font-size:.7rem;
-  letter-spacing:.2em; text-transform:uppercase; color:var(--teal);
-  opacity:.7; margin:0;
-}
 
 /* reading view */
 #text{margin-top:2.5rem}
@@ -147,11 +142,10 @@ kbd{border:1px solid var(--rule);border-radius:2px;padding:.05rem .3rem}
 
   <section id="pasteView">
     <div class="actions">
-      <button id="spLecture">Read SP Lecture</button>
+      <button id="spLecture" class="highlight">Read SP Lecture</button>
     </div>
     <div class="h1row">
-      <h1>Weblink</h1>
-      <button id="fetchDoc">Read Link</button>
+      <button id="fetchDoc" class="highlight">Read this Link</button>
     </div>
     <div class="docrow">
       <input type="url" id="docUrl" spellcheck="false" aria-label="Page or Google Doc link"
@@ -161,8 +155,7 @@ kbd{border:1px solid var(--rule);border-radius:2px;padding:.05rem .3rem}
     <p class="status" id="status" role="status" aria-live="polite"></p>
 
     <div class="h1row">
-      <p class="or">paste text</p>
-      <button id="load">Read Text</button>
+      <button id="load" class="highlight">Read this Text</button>
     </div>
     <textarea id="input" placeholder="Paste here&#8230;" spellcheck="false"></textarea>
     <p class="hint">
