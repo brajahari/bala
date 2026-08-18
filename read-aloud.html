@@ -55,8 +55,9 @@ input[type=range]{accent-color:var(--teal)}
 #pasteView{padding-top:2.5rem}
 #pasteView h1{
   font-family:"IBM Plex Mono",monospace; font-weight:500; font-size:.7rem;
-  letter-spacing:.2em; text-transform:uppercase; color:var(--teal); margin:0 0 1rem;
+  letter-spacing:.2em; text-transform:uppercase; color:var(--teal); margin:0;
 }
+.h1row{display:flex; align-items:center; gap:.6rem; margin:0 0 1rem}
 textarea{
   width:100%; min-height:18rem; resize:vertical;
   background:var(--panel); color:var(--fg);
@@ -80,10 +81,17 @@ input[type=url]:focus-visible{outline:2px solid var(--live);outline-offset:2px}
   color:var(--teal); margin:.9rem 0 0; min-height:1.2rem;
 }
 .status.bad{color:var(--live)}
+.trylink{
+  font-family:"IBM Plex Mono",monospace; font-size:.72rem;
+  color:var(--teal); background:transparent; border:1px dashed var(--rule);
+  border-radius:2px; padding:.3rem .5rem; margin:-.6rem 0 0;
+  cursor:pointer; opacity:.85;
+}
+.trylink:hover{border-color:var(--teal); opacity:1}
 .or{
   font-family:"IBM Plex Mono",monospace; font-size:.7rem;
   letter-spacing:.2em; text-transform:uppercase; color:var(--teal);
-  opacity:.7; margin:0 0 .8rem;
+  opacity:.7; margin:0;
 }
 
 /* reading view */
@@ -139,18 +147,23 @@ kbd{border:1px solid var(--rule);border-radius:2px;padding:.05rem .3rem}
 
   <section id="pasteView">
     <div class="actions">
-      <button id="fetchDoc">Read Link</button>
       <button id="spLecture">Read SP Lecture</button>
-      <button id="load">Read Text</button>
     </div>
-    <h1>Weblink</h1>
+    <div class="h1row">
+      <h1>Weblink</h1>
+      <button id="fetchDoc">Read Link</button>
+    </div>
     <div class="docrow">
       <input type="url" id="docUrl" spellcheck="false" aria-label="Page or Google Doc link"
              placeholder="https://&#8230; a web page or Google Doc link">
     </div>
+    <button type="button" id="tryLink" class="trylink">try this: https://vedabase.io/en/library/bg/1/</button>
     <p class="status" id="status" role="status" aria-live="polite"></p>
 
-    <p class="or">paste text</p>
+    <div class="h1row">
+      <p class="or">paste text</p>
+      <button id="load">Read Text</button>
+    </div>
     <textarea id="input" placeholder="Paste here&#8230;" spellcheck="false"></textarea>
     <p class="hint">
       Click a sentence to put the cursor there. Reading starts at the cursor.<br>
@@ -200,7 +213,7 @@ var bar=$("bar"), playBtn=$("play"),
     voiceSel=$("voice"), rate=$("rate"), rateVal=$("rateVal"), editBtn=$("edit"),
     themeBtn=$("theme"), count=$("count"), textEl=$("text"), pasteView=$("pasteView"),
     input=$("input"), loadBtn=$("load"), seek=$("seek"),
-    docUrl=$("docUrl"), fetchBtn=$("fetchDoc"), spLectureBtn=$("spLecture"), status=$("status");
+    docUrl=$("docUrl"), fetchBtn=$("fetchDoc"), spLectureBtn=$("spLecture"), tryLinkBtn=$("tryLink"), status=$("status");
 
 /* idx IS the cursor: where reading is now, or where it starts next. */
 var sentences=[], nodes=[], idx=0, playing=false, keepAlive=null, voices=[], dragging=false;
@@ -654,6 +667,10 @@ spLectureBtn.addEventListener("click", function(){
 });
 docUrl.addEventListener("keydown", function(e){
   if (e.key === "Enter"){ e.preventDefault(); fetchDoc(docUrl.value, present); }
+});
+tryLinkBtn.addEventListener("click", function(){
+  docUrl.value = DOC_DEFAULT;
+  docUrl.focus();
 });
 
 input.addEventListener("paste", function(e){
