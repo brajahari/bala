@@ -48,11 +48,9 @@ button:focus-visible,select:focus-visible,textarea:focus-visible,.s:focus-visibl
 }
 #play{background:var(--fg);color:var(--bg);border-color:var(--fg);font-weight:500;min-width:6rem}
 select{max-width:10rem}
-.rate{flex:1 1 auto;display:flex;align-items:center;gap:.4rem;font-family:"IBM Plex Mono",monospace;font-size:.72rem;color:var(--teal)}
 input[type=range]{accent-color:var(--teal)}
-/* both sliders stretch to fill their row */
-#rate,#seek{width:auto;flex:1 1 6rem;cursor:pointer}
-#seek{margin-left:auto}
+/* the seek slider stretches to fill its row */
+#seek{width:auto;flex:1 1 6rem;cursor:pointer;margin-left:auto}
 .count{font-family:"IBM Plex Mono",monospace;font-size:.72rem;color:var(--teal)}
 
 /* paste view */
@@ -69,25 +67,39 @@ textarea::placeholder{color:var(--fg);opacity:.3}
 
 /* google doc row */
 .docrow{display:flex;gap:.6rem;margin-bottom:1.2rem;flex-wrap:wrap}
+.combo{position:relative; flex:1 1 14rem; min-width:0}
 input[type=url]{
-  flex:1 1 14rem; min-width:0;
+  width:100%;
   background:var(--panel); color:var(--fg);
-  border:1px solid var(--rule); border-radius:2px; padding:.5rem .7rem;
+  border:1px solid var(--rule); border-radius:2px; padding:.5rem 2.2rem .5rem .7rem;
   font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.78rem;
 }
 input[type=url]:focus-visible{outline:2px solid var(--live);outline-offset:2px}
+.combo-toggle{
+  position:absolute; top:0; right:0; bottom:0; width:2.2rem;
+  display:flex; align-items:center; justify-content:center;
+  background:transparent; border:0; color:var(--teal); cursor:pointer;
+  font-size:.85rem; padding:0;
+}
+.combo-toggle:hover{color:var(--fg)}
+.combo-list{
+  position:absolute; z-index:30; top:calc(100% + .3rem); left:0; right:0;
+  margin:0; padding:.3rem; list-style:none;
+  background:var(--bg); border:1px solid var(--rule); border-radius:2px;
+  box-shadow:0 .3rem .9rem rgba(0,0,0,.25);
+  max-height:12rem; overflow:auto;
+}
+.combo-list li{
+  padding:.45rem .5rem; border-radius:2px; cursor:pointer;
+  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.76rem;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.combo-list li:hover,.combo-list li.active{background:var(--panel); color:var(--accent)}
 .status{
   font-family:"IBM Plex Mono",monospace; font-size:.72rem; line-height:1.7;
   color:var(--teal); margin:.9rem 0 0; min-height:1.2rem;
 }
 .status.bad{color:var(--live)}
-.trylink{
-  font-family:"IBM Plex Mono",monospace; font-size:.72rem;
-  color:var(--teal); background:transparent; border:1px dashed var(--rule);
-  border-radius:2px; padding:.3rem .5rem;
-  cursor:pointer; opacity:.85;
-}
-.trylink:hover{border-color:var(--teal); opacity:1}
 
 /* reading view */
 #text{margin-top:2.5rem}
@@ -108,8 +120,6 @@ body.idle .s{opacity:1}
 }
 body.idle .s.cursor{background:var(--panel)}
 
-.hint{font-family:"IBM Plex Mono",monospace;font-size:.7rem;color:var(--teal);margin-top:1.8rem;line-height:1.9}
-kbd{border:1px solid var(--rule);border-radius:2px;padding:.05rem .3rem}
 .hidden{display:none}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 @media(max-width:520px){
@@ -123,15 +133,14 @@ kbd{border:1px solid var(--rule);border-radius:2px;padding:.05rem .3rem}
 
   <div class="bar hidden" id="bar">
     <div class="row1">
+      <button id="edit" title="Back" aria-label="Back">&#8592;</button>
       <button id="play">Read</button>
-      <button id="edit">New text</button>
       <select id="voice" aria-label="Voice"></select>
-    </div>
-    <div class="row2">
-      <label class="rate">speed
-        <input type="range" id="rate" min="0.6" max="1.5" step="0.05" value="0.95" aria-label="Speed">
-        <span id="rateVal">0.95</span>
-      </label>
+      <select id="rate" aria-label="Speed">
+        <option value="1">1x</option>
+        <option value="1.25">1.25x</option>
+        <option value="1.5" selected>1.5x</option>
+      </select>
     </div>
     <div class="row3">
       <button id="theme" title="Light or dark">&#9788;</button>
@@ -146,23 +155,24 @@ kbd{border:1px solid var(--rule);border-radius:2px;padding:.05rem .3rem}
     </div>
     <div class="h1row">
       <button id="fetchDoc" class="highlight">Read this Link</button>
-      <button type="button" id="tryLink" class="trylink">try this: https://vedabase.io/en/library/bg/1/</button>
     </div>
     <div class="docrow">
-      <input type="url" id="docUrl" spellcheck="false" aria-label="Page or Google Doc link"
-             placeholder="https://&#8230; a web page or Google Doc link">
+      <div class="combo" id="docUrlCombo">
+        <input type="url" id="docUrl" spellcheck="false" autocomplete="off" aria-label="Page or Google Doc link"
+               placeholder="https://&#8230; a web page or Google Doc link">
+        <button type="button" id="docUrlToggle" class="combo-toggle" aria-label="Show link choices">&#9662;</button>
+        <ul class="combo-list hidden" id="docUrlList" role="listbox">
+          <li role="option" data-value="https://vedabase.io/en/library/bg/1/">https://vedabase.io/en/library/bg/1/</li>
+          <li role="option" data-value="https://vedabase.io/en/library/sb/1/1">https://vedabase.io/en/library/sb/1/1</li>
+        </ul>
+      </div>
     </div>
-    <p class="status" id="status" role="status" aria-live="polite"></p>
 
     <div class="h1row">
       <button id="load" class="highlight">Read this Text</button>
     </div>
-    <textarea id="input" placeholder="Paste here&#8230;" spellcheck="false"></textarea>
-    <p class="hint">
-      Click a sentence to put the cursor there. Reading starts at the cursor.<br>
-      The cursor follows along as it reads.<br>
-      <kbd>space</kbd> play or pause &nbsp;·&nbsp; <kbd>&larr;</kbd> <kbd>&rarr;</kbd> move the cursor
-    </p>
+    <textarea id="input" placeholder="Write/Paste here&#8230;" spellcheck="false"></textarea>
+    <p class="status" id="status" role="status" aria-live="polite"></p>
   </section>
 
   <article id="text"></article>
@@ -198,15 +208,17 @@ var ABBR = /\b(Mr|Mrs|Ms|Dr|Sri|Srila|St|etc|vs|No|Ch|Bg|SB|Cc|Jr|Sr)\.\s*$/i;
 
 /* The doc that fills the box on startup. Any share or published link works — this is just the default. */
 var DOC_DEFAULT = "https://vedabase.io/en/library/bg/1/";
+/* What "Read SP Lecture" fetches directly — a published Google Doc, separate from the example above. */
+var SP_LECTURE_DOC = "https://docs.google.com/document/d/e/2PACX-1vS_DNeREuq96b8rt_Nm8HqVo739-ZrwFB4azSrtxJU12zk0Vi1nNxnWCcybGNjeeGKpiESGVZUlUGMG/pub";
 
 var synth = window.speechSynthesis;
 function $(id){ return document.getElementById(id); }
 
 var bar=$("bar"), playBtn=$("play"),
-    voiceSel=$("voice"), rate=$("rate"), rateVal=$("rateVal"), editBtn=$("edit"),
+    voiceSel=$("voice"), rate=$("rate"), editBtn=$("edit"),
     themeBtn=$("theme"), count=$("count"), textEl=$("text"), pasteView=$("pasteView"),
     input=$("input"), loadBtn=$("load"), seek=$("seek"),
-    docUrl=$("docUrl"), fetchBtn=$("fetchDoc"), spLectureBtn=$("spLecture"), tryLinkBtn=$("tryLink"), status=$("status");
+    docUrl=$("docUrl"), fetchBtn=$("fetchDoc"), spLectureBtn=$("spLecture"), status=$("status");
 
 /* idx IS the cursor: where reading is now, or where it starts next. */
 var sentences=[], nodes=[], idx=0, playing=false, keepAlive=null, voices=[], dragging=false;
@@ -606,8 +618,7 @@ seek.addEventListener("change", function(){
   if (playing) speak(idx);
 });
 
-rate.addEventListener("input", function(){
-  rateVal.textContent = Number(rate.value).toFixed(2);
+rate.addEventListener("change", function(){
   remember("rate", rate.value);
   if (playing) speak(idx);
 });
@@ -656,14 +667,32 @@ loadBtn.addEventListener("click", function(){
 
 fetchBtn.addEventListener("click", function(){ fetchDoc(docUrl.value, present); });
 spLectureBtn.addEventListener("click", function(){
-  fetchDoc(DOC_DEFAULT, present, null, true);
+  fetchDoc(SP_LECTURE_DOC, present, null, true);
 });
 docUrl.addEventListener("keydown", function(e){
   if (e.key === "Enter"){ e.preventDefault(); fetchDoc(docUrl.value, present); }
+  if (e.key === "Escape") closeDocList();
 });
-tryLinkBtn.addEventListener("click", function(){
-  docUrl.value = DOC_DEFAULT;
+
+/* ─── link box: editable text field + a small dropdown of preset links ─── */
+var docUrlCombo = $("docUrlCombo"), docUrlToggle = $("docUrlToggle"), docUrlList = $("docUrlList");
+function openDocList(){ docUrlList.classList.remove("hidden"); }
+function closeDocList(){ docUrlList.classList.add("hidden"); }
+docUrlToggle.addEventListener("click", function(e){
+  e.preventDefault();
+  docUrlList.classList.contains("hidden") ? openDocList() : closeDocList();
   docUrl.focus();
+});
+docUrlList.addEventListener("mousedown", function(e){
+  var li = e.target.closest("li[data-value]");
+  if (!li) return;
+  e.preventDefault();                 // keep focus from bouncing off docUrl before we set it
+  docUrl.value = li.getAttribute("data-value");
+  closeDocList();
+  docUrl.focus();
+});
+document.addEventListener("click", function(e){
+  if (!docUrlCombo.contains(e.target)) closeDocList();
 });
 
 input.addEventListener("paste", function(e){
@@ -693,8 +722,7 @@ window.addEventListener("beforeunload", function(){ synth.cancel(); });
   var th = recall("theme");
   if (th) document.documentElement.setAttribute("data-theme", th);
   var r = recall("rate");
-  if (r) rate.value = r;
-  rateVal.textContent = Number(rate.value).toFixed(2);
+  if (r && ["1","1.25","1.5"].indexOf(r) !== -1) rate.value = r;
 
   /* ?doc=<link or id> in the address bar wins, then the last doc read, then the default. */
   var q = null;
