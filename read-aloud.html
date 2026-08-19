@@ -78,12 +78,10 @@ input[type=url]:focus-visible{outline:2px solid var(--live);outline-offset:2px}
 .combo-toggle{
   position:absolute; top:0; left:0; bottom:0; width:2.3rem;
   display:flex; align-items:center; justify-content:center;
-  background:var(--panel); border:1px solid var(--rule); border-right:none;
-  border-radius:2px 0 0 2px;
+  background:transparent; border:0; border-right:1px solid var(--rule);
   color:var(--fg); cursor:pointer; font-size:1rem; padding:0;
 }
-.combo-toggle:hover{background:rgba(var(--accent-rgb),.12); color:var(--accent); border-color:var(--teal)}
-.combo-toggle[aria-expanded="true"]{background:rgba(var(--accent-rgb),.12); color:var(--accent); border-color:var(--accent)}
+.combo-toggle:hover,.combo-toggle[aria-expanded="true"]{background:rgba(var(--accent-rgb),.12); color:var(--accent); border-right-color:var(--accent)}
 .combo-list{
   position:absolute; z-index:30; top:calc(100% + .3rem); left:0; right:0;
   margin:0; padding:.3rem; list-style:none;
@@ -158,7 +156,7 @@ body.idle .s.cursor{background:var(--panel)}
     <div class="docrow">
       <div class="combo" id="docUrlCombo">
         <input type="url" id="docUrl" spellcheck="false" autocomplete="off" aria-label="Page or Google Doc link"
-               placeholder="https://&#8230; a web page or Google Doc link">
+               placeholder="type / choose your weblink here">
         <button type="button" id="docUrlToggle" class="combo-toggle" aria-label="Show link choices" aria-expanded="false">&#9662;</button>
         <ul class="combo-list hidden" id="docUrlList" role="listbox">
           <li role="option" data-value="https://vedabase.io/en/library/bg/1/">https://vedabase.io/en/library/bg/1/</li>
@@ -210,9 +208,7 @@ var CHARS = [
 ];
 var ABBR = /\b(Mr|Mrs|Ms|Dr|Sri|Srila|St|etc|vs|No|Ch|Bg|SB|Cc|Jr|Sr)\.\s*$/i;
 
-/* The doc that fills the box on startup. Any share or published link works — this is just the default. */
-var DOC_DEFAULT = "https://vedabase.io/en/library/bg/1/";
-/* What "Read SP Lecture" fetches directly — a published Google Doc, separate from the example above. */
+/* What "Read SP Lecture" fetches directly — a published Google Doc. */
 var SP_LECTURE_DOC = "https://docs.google.com/document/d/e/2PACX-1vS_DNeREuq96b8rt_Nm8HqVo739-ZrwFB4azSrtxJU12zk0Vi1nNxnWCcybGNjeeGKpiESGVZUlUGMG/pub";
 
 var synth = window.speechSynthesis;
@@ -728,10 +724,11 @@ window.addEventListener("beforeunload", function(){ synth.cancel(); });
   var r = recall("rate");
   if (r && ["1","1.25","1.5"].indexOf(r) !== -1) rate.value = r;
 
-  /* ?doc=<link or id> in the address bar wins, then the last doc read, then the default. */
+  /* ?doc=<link or id> in the address bar wins, then the last doc read. First visit
+     ever (nothing remembered yet) leaves the box empty — the dropdown covers picking a link. */
   var q = null;
   try { q = new URLSearchParams(location.search).get("doc"); } catch(e){}
-  docUrl.value = q || recall("doc") || DOC_DEFAULT;
+  docUrl.value = q || recall("doc") || "";
 
   input.focus();
   // User must click "Fetch doc" to load — don't auto-fetch
