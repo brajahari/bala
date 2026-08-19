@@ -150,11 +150,8 @@ body.idle .s.cursor{background:var(--panel)}
   </div>
 
   <section id="pasteView">
-    <div class="actions">
-      <button id="spLecture" class="highlight">Read SP Lecture</button>
-    </div>
     <div class="h1row">
-      <button id="fetchDoc" class="highlight">Read this Link</button>
+      <button id="fetchDoc" class="highlight">Read Link</button>
     </div>
     <div class="docrow">
       <div class="combo" id="docUrlCombo">
@@ -167,9 +164,12 @@ body.idle .s.cursor{background:var(--panel)}
         </ul>
       </div>
     </div>
+    <div class="actions">
+      <button id="spLecture" class="highlight">Read SP Lecture (beta)</button>
+    </div>
 
     <div class="h1row">
-      <button id="load" class="highlight">Read this Text</button>
+      <button id="load" class="highlight">Read Text</button>
     </div>
     <textarea id="input" placeholder="Write/Paste here&#8230;" spellcheck="false"></textarea>
     <p class="status" id="status" role="status" aria-live="polite"></p>
