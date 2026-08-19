@@ -71,17 +71,19 @@ textarea::placeholder{color:var(--fg);opacity:.3}
 input[type=url]{
   width:100%;
   background:var(--panel); color:var(--fg);
-  border:1px solid var(--rule); border-radius:2px; padding:.5rem 2.2rem .5rem .7rem;
+  border:1px solid var(--rule); border-radius:2px; padding:.5rem .7rem .5rem 2.6rem;
   font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.78rem;
 }
 input[type=url]:focus-visible{outline:2px solid var(--live);outline-offset:2px}
 .combo-toggle{
-  position:absolute; top:0; right:0; bottom:0; width:2.2rem;
+  position:absolute; top:0; left:0; bottom:0; width:2.3rem;
   display:flex; align-items:center; justify-content:center;
-  background:transparent; border:0; color:var(--teal); cursor:pointer;
-  font-size:.85rem; padding:0;
+  background:var(--panel); border:1px solid var(--rule); border-right:none;
+  border-radius:2px 0 0 2px;
+  color:var(--fg); cursor:pointer; font-size:1rem; padding:0;
 }
-.combo-toggle:hover{color:var(--fg)}
+.combo-toggle:hover{background:rgba(var(--accent-rgb),.12); color:var(--accent); border-color:var(--teal)}
+.combo-toggle[aria-expanded="true"]{background:rgba(var(--accent-rgb),.12); color:var(--accent); border-color:var(--accent)}
 .combo-list{
   position:absolute; z-index:30; top:calc(100% + .3rem); left:0; right:0;
   margin:0; padding:.3rem; list-style:none;
@@ -157,7 +159,7 @@ body.idle .s.cursor{background:var(--panel)}
       <div class="combo" id="docUrlCombo">
         <input type="url" id="docUrl" spellcheck="false" autocomplete="off" aria-label="Page or Google Doc link"
                placeholder="https://&#8230; a web page or Google Doc link">
-        <button type="button" id="docUrlToggle" class="combo-toggle" aria-label="Show link choices">&#9662;</button>
+        <button type="button" id="docUrlToggle" class="combo-toggle" aria-label="Show link choices" aria-expanded="false">&#9662;</button>
         <ul class="combo-list hidden" id="docUrlList" role="listbox">
           <li role="option" data-value="https://vedabase.io/en/library/bg/1/">https://vedabase.io/en/library/bg/1/</li>
           <li role="option" data-value="https://vedabase.io/en/library/sb/1/1">https://vedabase.io/en/library/sb/1/1</li>
@@ -678,8 +680,8 @@ docUrl.addEventListener("keydown", function(e){
 
 /* ─── link box: editable text field + a small dropdown of preset links ─── */
 var docUrlCombo = $("docUrlCombo"), docUrlToggle = $("docUrlToggle"), docUrlList = $("docUrlList");
-function openDocList(){ docUrlList.classList.remove("hidden"); }
-function closeDocList(){ docUrlList.classList.add("hidden"); }
+function openDocList(){ docUrlList.classList.remove("hidden"); docUrlToggle.setAttribute("aria-expanded","true"); }
+function closeDocList(){ docUrlList.classList.add("hidden"); docUrlToggle.setAttribute("aria-expanded","false"); }
 docUrlToggle.addEventListener("click", function(e){
   e.preventDefault();
   docUrlList.classList.contains("hidden") ? openDocList() : closeDocList();
