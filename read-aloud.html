@@ -105,6 +105,15 @@ input[type=url]:focus-visible{outline:2px solid var(--live);outline-offset:2px}
   font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.72rem;
   color:var(--fg); opacity:.4; margin:0 0 .5rem;
 }
+.popupWrap{position:relative}
+.popup{
+  position:absolute; z-index:30; top:calc(100% + .5rem); right:0;
+  width:14rem; margin:0; padding:.7rem .8rem;
+  background:var(--bg); border:1px solid var(--rule); border-radius:2px;
+  box-shadow:0 .3rem .9rem rgba(0,0,0,.25);
+  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.74rem;
+  line-height:1.5; color:var(--fg);
+}
 .section{
   padding:1rem; border:1px solid var(--rule); border-radius:3px;
   background:var(--panel); margin-bottom:1.5rem;
@@ -151,6 +160,10 @@ body.idle .s.cursor{background:var(--panel)}
         <option value="1.5" selected>1.5x</option>
       </select>
       <button id="theme" title="Light or dark">&#9788;</button>
+      <span class="popupWrap" id="infoWrap">
+        <button id="info" title="How to use" aria-label="How to use">&#9432;</button>
+        <p class="popup hidden" id="readHint">Click any sentence to start reading from there.</p>
+      </span>
     </div>
     <div class="row3">
       <input type="range" id="seek" min="0" max="0" value="0" step="1" aria-label="Position in text">
@@ -234,7 +247,8 @@ function $(id){ return document.getElementById(id); }
 
 var bar=$("bar"), playBtn=$("play"),
     voiceSel=$("voice"), rate=$("rate"), editBtn=$("edit"),
-    themeBtn=$("theme"), count=$("count"), textEl=$("text"), pasteView=$("pasteView"),
+    themeBtn=$("theme"), infoBtn=$("info"), readHint=$("readHint"),
+    count=$("count"), textEl=$("text"), pasteView=$("pasteView"),
     input=$("input"), loadBtn=$("load"), seek=$("seek"),
     docUrl=$("docUrl"), fetchBtn=$("fetchDoc"), spLectureBtn=$("spLecture"), status=$("status");
 
@@ -649,6 +663,14 @@ themeBtn.addEventListener("click", function(){
   var now = document.documentElement.getAttribute("data-theme")==="day" ? "night" : "day";
   document.documentElement.setAttribute("data-theme", now);
   remember("theme", now);
+});
+var infoWrap = $("infoWrap");
+infoBtn.addEventListener("click", function(e){
+  e.stopPropagation();
+  readHint.classList.toggle("hidden");
+});
+document.addEventListener("click", function(e){
+  if (!infoWrap.contains(e.target)) readHint.classList.add("hidden");
 });
 
 /* back to the front page — the reading view goes away entirely */
