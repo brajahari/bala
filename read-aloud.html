@@ -71,7 +71,7 @@ textarea{
   font-family:inherit; font-size:1rem; line-height:1.6;
 }
 textarea::placeholder{color:var(--fg);opacity:.3}
-.actions{display:flex;justify-content:flex-end;gap:.6rem;margin-top:.5rem}
+.actions{display:flex;gap:.6rem;margin-top:.5rem}
 
 /* google doc row */
 .docrow{display:flex;gap:.6rem;margin-bottom:1.2rem;flex-wrap:wrap}
@@ -112,8 +112,6 @@ input[type=url]:focus-visible{outline:2px solid var(--live);outline-offset:2px}
   font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.85rem; font-weight:600;
   color:var(--fg); margin:0 0 .6rem;
 }
-.section-head{display:flex; align-items:center; justify-content:space-between; gap:.6rem; flex-wrap:wrap; margin-bottom:1rem}
-.section-head .section-title{margin:0}
 .popupWrap{position:relative}
 .popup{
   position:absolute; z-index:30; top:calc(100% + .5rem); right:0;
@@ -207,15 +205,15 @@ body.idle .s.cursor{background:var(--panel)}
       </div>
     </div>
     <div class="section">
-      <div class="section-head">
-        <p class="section-title">Daily Srila Prabhupada lecture.</p>
+      <p class="section-title">Daily Srila Prabhupada lecture.</p>
+      <div class="actions">
         <button id="spLecture" class="highlight">TTS SP Lecture (beta)</button>
       </div>
     </div>
 
     <div class="section">
-      <div class="section-head">
-        <p class="section-title">Or your own text.</p>
+      <p class="section-title">Or your own text.</p>
+      <div class="actions">
         <button id="load" class="highlight">TTS Text</button>
       </div>
       <textarea id="input" placeholder="Write/Paste here&#8230;" spellcheck="false"></textarea>
