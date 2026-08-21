@@ -111,16 +111,7 @@ input[type=url]:focus-visible{outline:2px solid var(--live);outline-offset:2px}
   font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.85rem; font-weight:600;
   color:var(--fg); margin:0 0 .6rem;
 }
-.popupWrap{position:relative}
 .hint-text{font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.7rem; color:var(--fg); opacity:.5; margin-left:auto; padding-left:.8rem}
-.popup{
-  position:absolute; z-index:30; top:calc(100% + .5rem); left:0;
-  width:14rem; margin:0; padding:.7rem .8rem;
-  background:var(--bg); border:1px solid var(--rule); border-radius:2px;
-  box-shadow:0 .3rem .9rem rgba(0,0,0,.25);
-  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.74rem;
-  line-height:1.5; color:var(--fg);
-}
 .section{
   padding:1rem; border:1px solid var(--rule); border-radius:3px;
   background:var(--panel); margin-bottom:1.5rem;
@@ -164,10 +155,6 @@ body.idle .s.cursor{background:var(--panel)}
   <div class="bar hidden" id="bar">
     <div class="row1">
       <button id="edit" title="Back" aria-label="Back">&#8592;</button>
-      <span class="popupWrap" id="infoWrap">
-        <button id="info" title="How to use" aria-label="How to use">&#9432;</button>
-        <p class="popup hidden" id="readHint">Click any sentence to start reading from there.</p>
-      </span>
       <button id="play">Read</button>
       <select id="voice" aria-label="Voice"></select>
       <select id="rate" aria-label="Speed">
@@ -176,7 +163,7 @@ body.idle .s.cursor{background:var(--panel)}
         <option value="1.5">1.5x</option>
       </select>
       <button id="theme" title="Light or dark">&#9788;</button>
-      <span class="hint-text">Click any sentence to start reading from there.</span>
+      <span class="hint-text">Click any sentence to change the reading position.</span>
     </div>
     <div class="row3">
       <input type="range" id="seek" min="0" max="0" value="0" step="1" aria-label="Position in text">
