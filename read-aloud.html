@@ -53,13 +53,18 @@ button:hover,select:hover{border-color:var(--teal)}
 button:focus-visible,select:focus-visible,textarea:focus-visible,.s:focus-visible{
   outline:2px solid var(--live); outline-offset:2px;
 }
-#play,#edit{background:var(--fg);color:var(--bg);border-color:var(--fg);font-weight:500;min-width:4.5rem}
-#edit{min-width:3rem}
+#play,#edit{
+  background:var(--fg);color:var(--bg);border-color:var(--fg);font-weight:500;min-width:4.5rem;
+  height:2.15rem; box-sizing:border-box; padding:0 .7rem;
+  display:inline-flex; align-items:center; justify-content:center;
+}
+#edit{min-width:3rem;font-size:2.5rem}
 select{max-width:10rem}
 input[type=range]{accent-color:var(--teal)}
-/* the seek slider stretches to fill its row */
-#seek{width:auto;flex:1 1 6rem;cursor:pointer;margin-left:auto}
+/* the seek slider expands to fill remaining space */
+#seek{flex:1 1 auto;cursor:pointer}
 .count{font-family:"IBM Plex Mono",monospace;font-size:.72rem;color:var(--teal)}
+.row-hint{display:flex;justify-content:center}
 
 /* paste view */
 #pasteView{padding-top:2.5rem}
@@ -111,7 +116,7 @@ input[type=url]:focus-visible{outline:2px solid var(--live);outline-offset:2px}
   font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.85rem; font-weight:600;
   color:var(--fg); margin:0 0 .6rem;
 }
-.hint-text{font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.7rem; color:var(--fg); opacity:.5; margin-left:auto; padding-left:.8rem}
+.hint-text{font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.7rem; color:var(--fg); opacity:.5}
 .section{
   padding:1rem; border:1px solid var(--rule); border-radius:3px;
   background:var(--panel); margin-bottom:1.5rem;
@@ -157,17 +162,19 @@ body.idle .s.cursor{background:var(--panel)}
       <button id="edit" title="Back" aria-label="Back">&#8592;</button>
       <button id="play">Read</button>
       <select id="voice" aria-label="Voice"></select>
+      <button id="theme" title="Light or dark">&#9788;</button>
+    </div>
+    <div class="row3">
       <select id="rate" aria-label="Speed">
         <option value="1">1x</option>
         <option value="1.25" selected>1.25x</option>
         <option value="1.5">1.5x</option>
       </select>
-      <button id="theme" title="Light or dark">&#9788;</button>
-      <span class="hint-text">Click any sentence to change the reading position.</span>
-    </div>
-    <div class="row3">
       <input type="range" id="seek" min="0" max="0" value="0" step="1" aria-label="Position in text">
       <span class="count" id="count"></span>
+    </div>
+    <div class="row-hint">
+      <span class="hint-text">Click any sentence to change the reading position.</span>
     </div>
   </div>
 
