@@ -58,7 +58,8 @@ button:focus-visible,select:focus-visible,textarea:focus-visible,.s:focus-visibl
   height:2.15rem; box-sizing:border-box; padding:0 .7rem;
   display:inline-flex; align-items:center; justify-content:center;
 }
-#edit{min-width:3rem;font-size:1.9rem;line-height:1}
+#edit{min-width:3rem}
+.icon-back{width:1.3rem;height:1.3rem;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;display:block}
 select{max-width:10rem}
 input[type=range]{accent-color:var(--teal)}
 /* the seek slider expands to fill remaining space */
@@ -159,7 +160,7 @@ body.idle .s.cursor{background:var(--panel)}
 
   <div class="bar hidden" id="bar">
     <div class="row1">
-      <button id="edit" title="Back" aria-label="Back">&#8592;</button>
+      <button id="edit" title="Back" aria-label="Back"><svg class="icon-back" viewBox="0 0 24 24" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg></button>
       <button id="play">Read</button>
       <select id="voice" aria-label="Voice"></select>
       <button id="theme" title="Light or dark">&#9788;</button>
