@@ -65,7 +65,7 @@ input[type=range]{accent-color:var(--teal)}
 /* the seek slider expands to fill remaining space */
 #seek{flex:1 1 auto;cursor:pointer}
 .count{font-family:"IBM Plex Mono",monospace;font-size:.72rem;color:var(--teal)}
-.row-hint{display:flex;justify-content:center}
+.row-hint{display:flex;justify-content:flex-start}
 
 /* paste view */
 #pasteView{padding-top:2.5rem}
@@ -118,7 +118,7 @@ input[type=url]:focus-visible{outline:2px solid var(--live);outline-offset:2px}
   font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.85rem; font-weight:600;
   color:var(--fg); margin:0 0 .6rem;
 }
-.hint-text{font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.75rem; color:var(--fg); opacity:.75}
+.hint-text{font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.75rem; color:var(--fg); opacity:1}
 .section{
   padding:1rem; border:1px solid var(--rule); border-radius:3px;
   background:var(--panel); margin-bottom:1.5rem;
@@ -176,13 +176,13 @@ body.idle .s.cursor{background:var(--panel)}
       <span class="count" id="count"></span>
     </div>
     <div class="row-hint">
-      <span class="hint-text">Click anywhere to change the reading position.</span>
+      <span class="hint-text">Click anywhere to change the read-position.</span>
     </div>
   </div>
 
   <section id="pasteView">
     <div class="section">
-      <p class="section-title">Choose, type, or edit the link below...</p>
+      <p class="section-title">Link (type or choose & edit):</p>
       <div class="docrow">
         <div class="combo" id="docUrlCombo">
           <input type="url" id="docUrl" spellcheck="false" autocomplete="off" aria-label="Page or Google Doc link"
@@ -526,6 +526,7 @@ function loadVoices(){
   });
   var saved = recall("voice"), pick = -1, i;
   for (i=0;i<voices.length;i++) if (voices[i].name===saved) pick = i;
+  if (pick<0) for (i=0;i<voices.length;i++) if (/en[-_]AU/i.test(voices[i].lang) && !/male|David|Mark|Matthew/i.test(voices[i].name)){ pick=i; break; }
   if (pick<0) for (i=0;i<voices.length;i++) if (/en[-_]AU/i.test(voices[i].lang)){ pick=i; break; }
   if (pick<0) pick = 0;
   voiceSel.value = String(Math.max(0,pick));
