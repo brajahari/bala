@@ -485,17 +485,22 @@ function build(text){
 /* Sanskrit-only letter swaps — applied only to words that already carry a
    diacritic (ā/ī/ū/ṇ/ṭ/ḍ/ś/ṣ/ñ/ṅ/ṁ/ḥ/ṛ etc.), so ordinary English words
    (where a/u/c/i are common) are left untouched. */
+   
 var SANSKRIT_LETTER_MAP = [
-  [/c(?!h)/gi, "ch"],
   [/jñ/gi, "gny"],
-  [/au/gi, "ow"],
-  [/ai/gi, "ai"],
-  [/u/gi, "oo"],
-  [/i/gi, "ee"],
-  [/ā/gi, "aa"],
+  [/c(?!h)/gi, "ch"],
+  [/ū/gi, "oo"],      // long u (before short u)
+  [/ī/gi, "ee"],      // long i (before short i)
+  [/ṝ/gi, "ree"],     // long ṛ (before short ṛ)
+  [/au/gi, "ow"],     // diphthong (before short u)
+  [/ai/gi, "ai"],     // diphthong (before short i)
+  [/u/gi, "uh"],      // short u
+  [/i/gi, "ih"],      // short i
+  [/ā/gi, "aah"],
+  [/ṛ/gi, "ri"],      // short ṛ
+  [/ḹ/gi, "lee"],     // long ḷ
   [/ṭ/gi, "t"],
   [/ḍ/gi, "d"],
-  [/ṛ/gi, "ri"],
   [/ś/gi, "sh"],
   [/ṣ/gi, "sh"],
   [/ñ/gi, "ny"],
