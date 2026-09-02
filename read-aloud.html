@@ -489,32 +489,40 @@ function build(text){
 var SANSKRIT_LETTER_MAP = [
   [/kṣ/gi, "gsh"],      // kṣ cluster → ṣ → sh
   [/jñ/gi, "gny"],
+  // aspirated consonants — drop the h, TTS can't produce real aspiration anyway
+  [/k(h)?/gi, "k"],
+  [/g(h)?/gi, "g"],
+  [/j(h)?/gi, "j"],
+  [/[ṭt](h)?/gi, "t"],
+  [/[ḍd](h)?/gi, "d"],
+  [/p(h)?/gi, "p"],
+  [/b(h)?/gi, "b"],
   [/c(?!h)/gi, "ch"],
   // long vowels & diphthongs (must come before their short counterparts)
   [/ū/gi, "oo"],      // long u
   [/ī/gi, "ee"],      // long i
-  [/ā/gi, "aa"],     // long a
+  [/ā/gi, "ah"],     // long a
   [/ṝ/gi, "ree"],     // long ṛ
   [/ḹ/gi, "lee"],     // long ḷ
   [/au/gi, "ow"],     // diphthong (contains short a+u)
   [/ai/gi, "ai"],     // diphthong (contains short a+i)
-  // short vowels
+  // short vowels — e/o must run before u/i, since u→oo and i→ee insert
+  // fresh o's/e's that a later e/o rule would otherwise re-match and mangle
+  [/e/gi, "eh"],
+  [/o/gi, "oh"],
   [/u/gi, "oo"],
   [/i/gi, "ee"],
   [/a/gi, "ah"],
-  [/e/gi, "eh"],
-  [/o/gi, "oh"],
   [/ṛ/gi, "ri"],
+  [/ḷ/gi, "li"],
   // consonant diacritics (order among these doesn't matter)
-  [/ṭ/gi, "t"],
-  [/ḍ/gi, "d"],
   [/ś/gi, "sh"],
   [/ṣ/gi, "sh"],
   [/ñ/gi, "ny"],
-  [/ṇ/gi, "n"],
+  [/[nṇ]/gi, "n"],
   [/ṅ/gi, "ng"],
-  [/ṁ/gi, "m"],
-  [/ḥ/gi, "h"]
+  [/[ṁṃ]/gi, "m"],
+  [/[ḥ]/gi, "h"]
 ];
 
 function sanskritizeWord(word, force){
@@ -539,7 +547,10 @@ function spoken(s){
   t = t.replace(/\p{L}+/gu, function(word, offset, full){
     if (englishExceptions.test(word)) return word;
     var hyphenAdjacent = full[offset-1] === "-" || full[offset+word.length] === "-";
-    return sanskritizeWord(word, twoLetterCV.test(word) && !hyphenAdjacent);
+    var isCV = twoLetterCV.test(word) && !hyphenAdjacent;
+    var out = sanskritizeWord(word, isCV);
+    if (isCV && !/h$/i.test(out)) out += "h";   // force one syllable, not spelled-out letters
+    return out;
   });
   t = t.replace(/_/g,"");
   t = t.normalize("NFD").replace(/[\u0300-\u036f]/g,"");
