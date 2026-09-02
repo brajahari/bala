@@ -488,6 +488,7 @@ function build(text){
    (where a/u/c/i are common) are left untouched. */
    
 var SANSKRIT_LETTER_MAP = [
+  [/kṣ/gi, "ṣ"],      // kṣ cluster → ṣ → sh
   [/jñ/gi, "gny"],
   [/c(?!h)/gi, "ch"],
   [/ū/gi, "oo"],      // long u (before short u)
