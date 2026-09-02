@@ -490,19 +490,22 @@ var SANSKRIT_LETTER_MAP = [
   [/kṣ/gi, "ṣ"],      // kṣ cluster → ṣ → sh
   [/jñ/gi, "gny"],
   [/c(?!h)/gi, "ch"],
-  [/ū/gi, "oo"],      // long u (before short u)
-  [/ī/gi, "ee"],      // long i (before short i)
-  [/ṝ/gi, "ree"],     // long ṛ (before short ṛ)
-  [/au/gi, "ow"],     // diphthong (before short u)
-  [/ai/gi, "ai"],     // diphthong (before short i)
-  [/u/gi, "uh"],      // short u
-  [/i/gi, "ih"],      // short i
-  [/ā/gi, "aah"],     // long a (before short a)
-  [/a/gi, "ah"],      // short a
-  [/e/gi, "eh"],      // short e
-  [/o/gi, "oh"],      // short o
-  [/ṛ/gi, "ri"],      // short ṛ
+  // long vowels & diphthongs (must come before their short counterparts)
+  [/ū/gi, "oo"],      // long u
+  [/ī/gi, "ee"],      // long i
+  [/ā/gi, "aah"],     // long a
+  [/ṝ/gi, "ree"],     // long ṛ
   [/ḹ/gi, "lee"],     // long ḷ
+  [/au/gi, "ow"],     // diphthong (contains short a+u)
+  [/ai/gi, "ai"],     // diphthong (contains short a+i)
+  // short vowels
+  [/u/gi, "uh"],
+  [/i/gi, "ih"],
+  [/a/gi, "a"],
+  [/e/gi, "eh"],
+  [/o/gi, "oh"],
+  [/ṛ/gi, "ri"],
+  // consonant diacritics (order among these doesn't matter)
   [/ṭ/gi, "t"],
   [/ḍ/gi, "d"],
   [/ś/gi, "sh"],
@@ -528,12 +531,15 @@ function spoken(s){
   for (i=0;i<SAY.length;i++) t = t.replace(SAY[i][0], SAY[i][1]);
   /* 2-letter consonant+vowel words (na, sa, ca, ka…) get spelled out
      letter-by-letter by the TTS engine unless sanskritized, even without a
-     diacritic — except for the handful that are ordinary English words. */
+     diacritic — except ordinary English words (be, he, to, co-, bi-…). A word
+     glued to a hyphen (bi-weekly, co-op, re-enter) is an English prefix, not
+     a standalone Sanskrit particle, so it's left alone too. */
   var englishExceptions = /^(be|he|me|we|to|do|go|no|so)$/i;
   var twoLetterCV = /^[bcdfghjklmnpqrstvwxyz][aeiou]$/i;
-  t = t.replace(/\p{L}+/gu, function(word){
+  t = t.replace(/\p{L}+/gu, function(word, offset, full){
     if (englishExceptions.test(word)) return word;
-    return sanskritizeWord(word, twoLetterCV.test(word));
+    var hyphenAdjacent = full[offset-1] === "-" || full[offset+word.length] === "-";
+    return sanskritizeWord(word, twoLetterCV.test(word) && !hyphenAdjacent);
   });
   t = t.replace(/_/g,"");
   t = t.normalize("NFD").replace(/[\u0300-\u036f]/g,"");
