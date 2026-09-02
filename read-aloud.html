@@ -524,11 +524,12 @@ function sanskritizeWord(word){
 function spoken(s){
   var t = s, i;
   for (i=0;i<SAY.length;i++) t = t.replace(SAY[i][0], SAY[i][1]);
-  /* Bare 2-letter consonant+a words (na, sa, ca, da…) get spelled out
-     letter-by-letter by the TTS engine unless nudged into one syllable.
-     No 2-letter English word ends in 'a', so this is always safe. */
-  t = t.replace(/\b([bcdfghjklmnpqrstvwxyz])a\b/gi, "$1ah");
-  t = t.replace(/\p{L}+/gu, sanskritizeWord);
+  /* Apply Sanskrit rules to all words except 9 common English [consonant][vowel] words */
+  var englishExceptions = /^(be|he|me|we|to|do|go|no|so)$/i;
+  t = t.replace(/\p{L}+/gu, function(word){
+    if (englishExceptions.test(word)) return word;
+    return sanskritizeWord(word);
+  });
   t = t.replace(/_/g,"");
   t = t.normalize("NFD").replace(/[\u0300-\u036f]/g,"");
   t = t.replace(/(\d+)\.(\d+)\s*[–-]\s*(\d+)/g,"chapter $1, verses $2 to $3");
