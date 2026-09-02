@@ -256,8 +256,7 @@ var SAY = [
   [/Hare/g, "Hahray"],
   [/candra/gi, "chandruh"],
   [/buddhi/gi, "booddhi"],
-  [/citraketu/gi, "chitraketu"],
-  [/\bca\b/gi, "chah"]
+  [/citraketu/gi, "chitraketu"]
 ];
 var ABBR = /\b(Mr|Mrs|Ms|Dr|Sri|Srila|St|etc|vs|No|Ch|Bg|SB|Cc|Jr|Sr)\.\s*$/i;
 
@@ -515,8 +514,8 @@ var SANSKRIT_LETTER_MAP = [
   [/ḥ/gi, "h"]
 ];
 
-function sanskritizeWord(word){
-  if (!/[^\x00-\x7F]/.test(word)) return word;   // no diacritic → plain English, leave it alone
+function sanskritizeWord(word, force){
+  if (!force && !/[^\x00-\x7F]/.test(word)) return word;   // no diacritic → plain English, leave it alone
   for (var i=0;i<SANSKRIT_LETTER_MAP.length;i++){
     word = word.replace(SANSKRIT_LETTER_MAP[i][0], SANSKRIT_LETTER_MAP[i][1]);
   }
@@ -527,11 +526,14 @@ function sanskritizeWord(word){
 function spoken(s){
   var t = s, i;
   for (i=0;i<SAY.length;i++) t = t.replace(SAY[i][0], SAY[i][1]);
-  /* Apply Sanskrit rules to all words except 9 common English [consonant][vowel] words */
+  /* 2-letter consonant+vowel words (na, sa, ca, ka…) get spelled out
+     letter-by-letter by the TTS engine unless sanskritized, even without a
+     diacritic — except for the handful that are ordinary English words. */
   var englishExceptions = /^(be|he|me|we|to|do|go|no|so)$/i;
+  var twoLetterCV = /^[bcdfghjklmnpqrstvwxyz][aeiou]$/i;
   t = t.replace(/\p{L}+/gu, function(word){
     if (englishExceptions.test(word)) return word;
-    return sanskritizeWord(word);
+    return sanskritizeWord(word, twoLetterCV.test(word));
   });
   t = t.replace(/_/g,"");
   t = t.normalize("NFD").replace(/[\u0300-\u036f]/g,"");
