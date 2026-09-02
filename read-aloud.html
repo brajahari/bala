@@ -487,7 +487,7 @@ function build(text){
    (where a/u/c/i are common) are left untouched. */
    
 var SANSKRIT_LETTER_MAP = [
-  [/kṣ/gi, "ṣ"],      // kṣ cluster → ṣ → sh
+  [/kṣ/gi, "gsh"],      // kṣ cluster → ṣ → sh
   [/jñ/gi, "gny"],
   [/c(?!h)/gi, "ch"],
   // long vowels & diphthongs (must come before their short counterparts)
@@ -501,7 +501,7 @@ var SANSKRIT_LETTER_MAP = [
   // short vowels
   [/u/gi, "uh"],
   [/i/gi, "ih"],
-  [/a/gi, "a"],
+  [/a/gi, "ah"],
   [/e/gi, "eh"],
   [/o/gi, "oh"],
   [/ṛ/gi, "ri"],
