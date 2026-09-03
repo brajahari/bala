@@ -189,10 +189,10 @@ body.idle .s.cursor{background:var(--panel)}
                  placeholder="type / choose your weblink here">
           <button type="button" id="docUrlToggle" class="combo-toggle" aria-label="Show link choices" aria-expanded="false">&#9662;</button>
           <ul class="combo-list hidden" id="docUrlList" role="listbox">
-            <li role="option" data-value="https://vedabase.io/en/library/bg/1/">https://vedabase.io/en/library/bg/1/</li>
-            <li role="option" data-value="https://vedabase.io/en/library/sb/1/1">https://vedabase.io/en/library/sb/1/1</li>
-            <li role="option" data-value="https://vedabase.io/en/library/cc/adi/1/">https://vedabase.io/en/library/cc/adi/1/</li>
-            <li role="option" data-value="https://vedabase.io/en/library/kb/1/">https://vedabase.io/en/library/kb/1/</li>
+            <li role="option" id="bgListItem" data-value="https://vedabase.io/en/library/bg/1/">https://vedabase.io/en/library/bg/1/</li>
+            <li role="option" id="sbListItem" data-value="https://vedabase.io/en/library/sb/1/1">https://vedabase.io/en/library/sb/1/1</li>
+            <li role="option" id="ccListItem" data-value="https://vedabase.io/en/library/cc/adi/1/">https://vedabase.io/en/library/cc/adi/1/</li>
+            <li role="option" id="kbListItem" data-value="https://vedabase.io/en/library/kb/1/">https://vedabase.io/en/library/kb/1/</li>
           </ul>
         </div>
       </div>
@@ -920,6 +920,31 @@ window.addEventListener("beforeunload", function(){ synth.cancel(); });
 
   input.focus();
   // User must click "Fetch doc" to load — don't auto-fetch
+
+  var kbLi = $("kbListItem");
+  if (kbLi){
+    var kbUrl = "https://vedabase.io/en/library/kb/" + (Math.floor(Math.random()*90)+1) + "/";
+    kbLi.setAttribute("data-value", kbUrl);
+    kbLi.textContent = kbUrl;
+  }
+  var bgLi = $("bgListItem");
+  if (bgLi){
+    var bgUrl = "https://vedabase.io/en/library/bg/" + (Math.floor(Math.random()*18)+1) + "/";
+    bgLi.setAttribute("data-value", bgUrl);
+    bgLi.textContent = bgUrl;
+  }
+  var sbLi = $("sbListItem");
+  if (sbLi){
+    var sbUrl = "https://vedabase.io/en/library/sb/1/" + (Math.floor(Math.random()*19)+1);
+    sbLi.setAttribute("data-value", sbUrl);
+    sbLi.textContent = sbUrl;
+  }
+  var ccLi = $("ccListItem");
+  if (ccLi){
+    var ccUrl = "https://vedabase.io/en/library/cc/adi/" + (Math.floor(Math.random()*17)+1) + "/";
+    ccLi.setAttribute("data-value", ccUrl);
+    ccLi.textContent = ccUrl;
+  }
 })();
 
 })();
