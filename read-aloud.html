@@ -487,7 +487,8 @@ function build(text){
    (where a/u/c/i are common) are left untouched. */
    
 var SANSKRIT_LETTER_MAP = [
-  [/kṣ/gi, "gsh"],      // kṣ cluster → ṣ → sh
+  [/^kṣ/gi, "sh"],
+  [/kṣ/gi, "ksh"],      // kṣ cluster → ṣ → sh
   [/jñ/gi, "gny"],
   // aspirated consonants — drop the h, TTS can't produce real aspiration anyway
   [/k(h)?/gi, "k"],
@@ -501,24 +502,24 @@ var SANSKRIT_LETTER_MAP = [
   // long vowels & diphthongs (must come before their short counterparts)
   [/ū/gi, "oo"],      // long u
   [/ī/gi, "ee"],      // long i
-  [/ā/gi, "ah"],     // long a
+  [/ā/gi, "aa"],     // long a
   [/ṝ/gi, "ree"],     // long ṛ
   [/ḹ/gi, "lee"],     // long ḷ
   [/au/gi, "ow"],     // diphthong (contains short a+u)
-  [/ai/gi, "ai"],     // diphthong (contains short a+i)
+  [/ai/gi, "ayi"],     // diphthong (contains short a+i)
   // short vowels — e/o must run before u/i, since u→oo and i→ee insert
   // fresh o's/e's that a later e/o rule would otherwise re-match and mangle
-  [/e/gi, "eh"],
-  [/o/gi, "oh"],
+  [/e/gi, "e"],
+  [/o/gi, "o"],
   [/u/gi, "oo"],
-  [/i/gi, "ee"],
-  [/a/gi, "ah"],
-  [/ṛ/gi, "ri"],
-  [/ḷ/gi, "li"],
+  [/i/gi, "i"],
+  [/a/gi, "a"],
+  [/ṛ/gi, "ree"],
+  [/ḷ/gi, "lee"],
   // consonant diacritics (order among these doesn't matter)
   [/ś/gi, "sh"],
   [/ṣ/gi, "sh"],
-  [/ñ/gi, "ny"],
+  [/ñ/gi, "n"],
   [/[nṇ]/gi, "n"],
   [/ṅ/gi, "ng"],
   [/[ṁṃ]/gi, "m"],
