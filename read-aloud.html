@@ -488,9 +488,10 @@ function build(text){
    
 var SANSKRIT_LETTER_MAP = [
   [/^kṣ/gi, "sh"],
+  [/e$/gi, "ey"],
   [/kṣ/gi, "ksh"],      // kṣ cluster → ṣ → sh
   [/jñ/gi, "gny"],
-  // aspirated consonants — drop the h, TTS can't produce real aspiration anyway
+  // aspirated consonants
   [/k(h)?/gi, "k"],
   [/g(h)?/gi, "g"],
   [/j(h)?/gi, "j"],
@@ -498,22 +499,21 @@ var SANSKRIT_LETTER_MAP = [
   [/[ḍd](h)?/gi, "d"],
   [/p(h)?/gi, "p"],
   [/b(h)?/gi, "b"],
-  [/c(?!h)/gi, "ch"],
-  // long vowels & diphthongs (must come before their short counterparts)
-  [/ū/gi, "oo"],      // long u
-  [/ī/gi, "ee"],      // long i
-  [/ā/gi, "aa"],     // long a
-  [/ṝ/gi, "ree"],     // long ṛ
-  [/ḹ/gi, "lee"],     // long ḷ
-  [/au/gi, "ow"],     // diphthong (contains short a+u)
-  [/ai/gi, "ayi"],     // diphthong (contains short a+i)
-  // short vowels — e/o must run before u/i, since u→oo and i→ee insert
-  // fresh o's/e's that a later e/o rule would otherwise re-match and mangle
-  [/e/gi, "e"],
-  [/o/gi, "o"],
+  [/c(h)?/gi, "ch"],
+  // long vowels 
+  [/ū/gi, "oo"],      
+  [/ī/gi, "ee"],     
+  [/ā/gi, "aa"],     
+  [/ṝ/gi, "ree"],     
+  [/ḹ/gi, "lee"],    
+  [/au/gi, "ow"],     
+  [/ai/gi, "ayi"],     
+  // short vowels 
+  //[/a/gi, "a"],
+  //[/e/gi, "e"],
+  //[/i/gi, "i"],
+  //[/o/gi, "o"],
   [/u/gi, "oo"],
-  [/i/gi, "i"],
-  [/a/gi, "a"],
   [/ṛ/gi, "ree"],
   [/ḷ/gi, "lee"],
   // consonant diacritics (order among these doesn't matter)
@@ -555,8 +555,6 @@ function spoken(s){
   });
   t = t.replace(/_/g,"");
   t = t.normalize("NFD").replace(/[\u0300-\u036f]/g,"");
-  t = t.replace(/(\d+)\.(\d+)\s*[–-]\s*(\d+)/g,"chapter $1, verses $2 to $3");
-  t = t.replace(/(\d+)\.(\d+)/g,"chapter $1, verse $2");
   return t.replace(/[-–—]/g," ").trim();
 }
 
