@@ -59,7 +59,7 @@ button:focus-visible,select:focus-visible,textarea:focus-visible,.s:focus-visibl
   display:inline-flex; align-items:center; justify-content:center;
 }
 #edit{min-width:3rem}
-#refreshBtn{position:fixed; top:1rem; right:1.25rem; z-index:25; line-height:1}
+#refreshBtn{float:right; margin-top:1rem; font-weight:700}
 body:not(.landing) #refreshBtn{display:none}
 .icon-back{width:1.3rem;height:1.3rem;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;display:block}
 select{max-width:10rem}
@@ -70,7 +70,7 @@ input[type=range]{accent-color:var(--teal)}
 .row-hint{display:flex;justify-content:flex-start}
 
 /* paste view */
-#pasteView{padding-top:2.5rem}
+#pasteView{padding-top:.5rem; clear:both}
 textarea{
   width:100%; min-height:18rem; resize:vertical;
   background:var(--panel); color:var(--fg);
@@ -161,7 +161,7 @@ body.idle .s.cursor{background:var(--panel)}
 
 <div class="wrap">
 
-  <button id="refreshBtn" title="Refresh page" aria-label="Refresh page">&#8635;</button>
+  <button id="refreshBtn" class="highlight" title="Refresh page" aria-label="Refresh page">&#8635;</button>
 
   <div class="bar hidden" id="bar">
     <div class="row1">
@@ -202,9 +202,8 @@ body.idle .s.cursor{background:var(--panel)}
       </div>
       <div class="actions">
         <button id="fetchDoc" class="highlight">TTS Link</button>
-        <button id="openLink" class="highlight" style="margin-left:auto" title="Open link in new tab">↗</button>
+        <button id="openLink" class="highlight" style="margin-left:auto;font-weight:700" title="Open link in new tab">↗</button>
       </div>
-      <p class="hint-text" style="margin-top:.6rem;color:var(--teal)">[You may choose a link from the dropdown, edit it, or paste your own link]</p>
     </div>
     <div class="section">
       <p class="section-title">SP Live</p>
@@ -498,7 +497,7 @@ var SANSKRIT_LETTER_MAP = [
   [/kṣ/gi, "ksh"],      // kṣ cluster → ṣ → sh
   [/jñ/gi, "gny"],
   [/nṛ/gi, "nar"],
-  [/vas/gi, "-vas"],
+  [/rvas/gi, "r-vas"],
   // aspirated consonants
   [/k(h)?/gi, "k"],
   [/g(h)?/gi, "g"],
