@@ -202,7 +202,9 @@ body.idle .s.cursor{background:var(--panel)}
       </div>
       <div class="actions">
         <button id="fetchDoc" class="highlight">TTS Link</button>
-        <button id="openLink" class="highlight" style="margin-left:auto;font-weight:700" title="Open link in new tab">↗</button>
+        <button id="decLink" class="highlight" style="margin-left:auto;font-weight:700" title="Decrease last number in link by 1">−</button>
+        <button id="incLink" class="highlight" style="font-weight:700" title="Increase last number in link by 1">+</button>
+        <button id="openLink" class="highlight" style="font-weight:700" title="Open link in new tab">↗</button>
       </div>
     </div>
     <div class="section">
@@ -826,6 +828,21 @@ fetchBtn.addEventListener("click", function(){ fetchDoc(docUrl.value, present); 
 $("openLink").addEventListener("click", function(){
   var url = docUrl.value.trim();
   if (url) window.open(url, "_blank");
+});
+$("incLink").addEventListener("click", function(){
+  var url = docUrl.value;
+  var m = url.match(/\d+(?!.*\d)/);
+  if (!m) return;
+  var incremented = String(Number(m[0]) + 1);
+  docUrl.value = url.slice(0, m.index) + incremented + url.slice(m.index + m[0].length);
+});
+$("decLink").addEventListener("click", function(){
+  var url = docUrl.value;
+  var m = url.match(/\d+(?!.*\d)/);
+  if (!m) return;
+  var n = Number(m[0]) - 1;
+  if (n < 0) return;
+  docUrl.value = url.slice(0, m.index) + String(n) + url.slice(m.index + m[0].length);
 });
 spLectureBtn.addEventListener("click", function(){
   fetchDoc(SP_LECTURE_DOC, present, null, true);
