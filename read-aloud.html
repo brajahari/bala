@@ -61,6 +61,8 @@ button:focus-visible,select:focus-visible,textarea:focus-visible,.s:focus-visibl
 #edit{min-width:3rem}
 #refreshBtn{float:right; margin-top:1rem; font-weight:700}
 body:not(.landing) #refreshBtn{display:none}
+.section-head .primary{display:inline-flex; align-items:center; justify-content:center; gap:.4rem}
+.icon-tts{width:1rem;height:1rem;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
 .icon-back{width:1.3rem;height:1.3rem;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;display:block}
 select{max-width:10rem}
 input[type=range]{accent-color:var(--teal)}
@@ -95,6 +97,13 @@ input[type=url]{
 input[type=url]::placeholder{color:var(--fg);opacity:.35}
 input[type=url]:focus-visible{outline:2px solid var(--live);outline-offset:2px}
 .vbgrid{display:grid; grid-template-columns:repeat(3,1fr); gap:.5rem .6rem}
+.vbgrid .vbsp{grid-column:1; margin-top:.3rem}
+/* card text: one main line in the body colour, secondary notes smaller in teal */
+.live-now{margin:0; font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.85rem; font-weight:500; line-height:1.5; color:var(--fg)}
+.note{margin:.5rem 0 0; font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.75rem; line-height:1.5; color:var(--teal)}
+.note:empty{display:none}
+.note.remark{color:#F59E0B}
+.vbnote{margin-top:.9rem}
 .vbbox[readonly]{
   cursor:pointer; font-weight:600; text-align:center;
   color:#B45309; background:rgba(245,158,11,.14); border-color:rgba(245,158,11,.6);
@@ -197,7 +206,7 @@ body.idle .s.cursor{background:var(--panel)}
         <button id="vbDec" class="tool" title="Decrease last number by 1" aria-label="Previous">−</button>
         <button id="vbInc" class="tool" title="Increase last number by 1" aria-label="Next">+</button>
         <button id="vbOpen" class="tool" title="Open link in new tab" aria-label="Open link in new tab">↗</button>
-        <button id="vbFetch" class="highlight primary">TTS</button>
+        <button id="vbFetch" class="highlight primary"><svg class="icon-tts" viewBox="0 0 24 24" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M19 5a10 10 0 0 1 0 14"></path></svg>TTS</button>
       </div>
       <div class="vbgrid" id="vbGrid">
         <label><input type="radio" name="vbPick" checked><input type="text" class="vbbox" value="bg/1/1" spellcheck="false" autocomplete="off"></label>
@@ -208,18 +217,20 @@ body.idle .s.cursor{background:var(--panel)}
         <label><input type="radio" name="vbPick"><input type="text" class="vbbox" value="kb/1" spellcheck="false" autocomplete="off"></label>
         <label><input type="radio" name="vbPick"><input type="text" class="vbbox" value="" spellcheck="false" autocomplete="off"></label>
         <label><input type="radio" name="vbPick"><input type="text" class="vbbox" value="" spellcheck="false" autocomplete="off"></label>
-        <label><input type="radio" name="vbPick" id="vbSpRadio"><input type="text" class="vbbox" value="Daily SP lecture" readonly></label>
+        <label><input type="radio" name="vbPick"><input type="text" class="vbbox" value="" spellcheck="false" autocomplete="off"></label>
+        <label class="vbsp"><input type="radio" name="vbPick" id="vbSpRadio"><input type="text" class="vbbox" value="Daily SP lecture" readonly></label>
       </div>
+      <p class="note remark vbnote">Use + to move to the next verse. Your values are saved, so you can pick up where you left off next time.</p>
     </div>
     <div class="section">
       <div class="section-head">
         <p class="section-title">SP Live</p>
-        <button id="livePlay" class="highlight primary">Play</button>
-        <button id="liveStop" style="display:none" class="highlight primary">Stop</button>
+        <button id="livePlay" class="highlight primary"><svg class="icon-tts" viewBox="0 0 24 24" aria-hidden="true"><polygon points="7 4 20 12 7 20 7 4"></polygon></svg>Play</button>
+        <button id="liveStop" style="display:none" class="highlight primary"><svg class="icon-tts" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1"></rect></svg>Stop</button>
       </div>
-      <p class="status" id="liveNowPlaying" style="margin:0"></p>
-      <p class="hint-text" id="liveNext" style="margin-top:.6rem"></p>
-      <p class="hint-text" style="margin-top:.4rem;color:var(--teal)">[You may lock the phone while hearing]</p>
+      <p class="live-now" id="liveNowPlaying"></p>
+      <p class="note" id="liveNext"></p>
+      <p class="note remark">You may lock the phone while listening.</p>
       <audio id="liveAudio">
         <source src="https://prabhupada.prabhupadaradio.com/radio.mp3" type="audio/mpeg">
       </audio>
@@ -229,7 +240,7 @@ body.idle .s.cursor{background:var(--panel)}
       <div class="section-head">
         <p class="section-title">Any link or text</p>
         <button id="openLink" class="tool" title="Open link in new tab" aria-label="Open link in new tab">↗</button>
-        <button id="load" class="highlight primary">TTS</button>
+        <button id="load" class="highlight primary"><svg class="icon-tts" viewBox="0 0 24 24" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M19 5a10 10 0 0 1 0 14"></path></svg>TTS</button>
       </div>
       <div class="modes" role="radiogroup" aria-label="Source">
         <label><input type="radio" name="srcMode" value="link" checked> Link</label>
@@ -847,7 +858,6 @@ function setMode(m){
   docUrl.classList.toggle("hidden", !isLink);
   input.classList.toggle("hidden", isLink);
   openLinkBtn.classList.toggle("hidden", !isLink);
-  loadBtn.textContent = isLink ? "TTS" : "TTS Text";
   remember("mode", m);
 }
 document.querySelectorAll("input[name=srcMode]").forEach(function(r){
@@ -889,15 +899,35 @@ function vbUrl(){
   var path = b.value.trim().replace(/^\/+/, "");
   return path ? VEDABASE + path : "";
 }
+/* Box contents and the chosen box persist on this device, so reading carries on next visit. */
+var vbBoxes = vbGrid.querySelectorAll(".vbbox:not([readonly])"),
+    vbRadios = vbGrid.querySelectorAll("input[type=radio]");
+function vbSave(){
+  var vals = [], pick = 0, i;
+  for (i=0;i<vbBoxes.length;i++) vals.push(vbBoxes[i].value);
+  for (i=0;i<vbRadios.length;i++) if (vbRadios[i].checked) pick = i;
+  remember("vb", JSON.stringify({ vals:vals, pick:pick }));
+}
+(function vbRestore(){
+  var saved;
+  try { saved = JSON.parse(recall("vb")); } catch(e){}
+  if (!saved || !saved.vals) return;
+  for (var i=0;i<vbBoxes.length && i<saved.vals.length;i++) vbBoxes[i].value = saved.vals[i];
+  if (vbRadios[saved.pick]) vbRadios[saved.pick].checked = true;
+})();
+vbGrid.addEventListener("input", vbSave);
+vbGrid.addEventListener("change", vbSave);
 vbGrid.addEventListener("focusin", function(e){
-  if (e.target.classList.contains("vbbox")) e.target.parentNode.querySelector("input[type=radio]").checked = true;
+  if (!e.target.classList.contains("vbbox")) return;
+  e.target.parentNode.querySelector("input[type=radio]").checked = true;
+  vbSave();
 });
 $("vbFetch").addEventListener("click", function(){
   var url = vbUrl();
   if (url) fetchDoc(url, present, null, true);
 });
-$("vbInc").addEventListener("click", function(){ var b = vbBox(); if (b) b.value = bumpLast(b.value, 1); });
-$("vbDec").addEventListener("click", function(){ var b = vbBox(); if (b) b.value = bumpLast(b.value, -1); });
+$("vbInc").addEventListener("click", function(){ var b = vbBox(); if (b){ b.value = bumpLast(b.value, 1); vbSave(); } });
+$("vbDec").addEventListener("click", function(){ var b = vbBox(); if (b){ b.value = bumpLast(b.value, -1); vbSave(); } });
 $("vbOpen").addEventListener("click", function(){
   var url = vbUrl();
   if (url) window.open(url, "_blank");
