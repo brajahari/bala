@@ -3,8 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Reader</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<title>Reader</title><link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Gentium+Book+Plus:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -59,8 +58,6 @@ button:focus-visible,select:focus-visible,textarea:focus-visible,.s:focus-visibl
   display:inline-flex; align-items:center; justify-content:center;
 }
 #edit{min-width:3rem}
-#refreshBtn{float:right; margin-top:1rem; font-weight:700}
-body:not(.landing) #refreshBtn{display:none}
 .section-head .primary{display:inline-flex; align-items:center; justify-content:center; gap:.4rem}
 .icon-tts{width:1rem;height:1rem;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
 .icon-back{width:1.3rem;height:1.3rem;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;display:block}
@@ -101,7 +98,8 @@ input[type=url]:focus-visible{outline:2px solid var(--live);outline-offset:2px}
 .note{margin:.5rem 0 0; font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.75rem; line-height:1.5; color:var(--teal)}
 .note:empty{display:none}
 .note.remark{color:#F59E0B}
-.vbnote{margin-top:.9rem}
+.vbnote{margin-top:.9rem; padding-left:1.1rem}
+.vbnote li+li{margin-top:.15rem}
 .vbbox[readonly]{
   cursor:pointer; font-weight:600; text-align:center;
   color:#B45309; background:rgba(245,158,11,.14); border-color:rgba(245,158,11,.6);
@@ -174,12 +172,10 @@ body.idle .s.cursor{background:var(--panel)}
 
 <div class="wrap">
 
-  <button id="refreshBtn" title="Refresh page" aria-label="Refresh page">&#8635;</button>
-
   <div class="bar hidden" id="bar">
     <div class="row1">
       <button id="edit" title="Back" aria-label="Back"><svg class="icon-back" viewBox="0 0 24 24" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg></button>
-      <button id="play">Read</button>
+      <button id="play" title="Read" aria-label="Read"><svg class="icon-tts" viewBox="0 0 24 24" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M19 5a10 10 0 0 1 0 14"></path></svg></button>
       <select id="voice" aria-label="Voice"></select>
       <button id="theme" title="Light or dark">&#9788;</button>
     </div>
@@ -210,14 +206,18 @@ body.idle .s.cursor{background:var(--panel)}
       <div class="vbgrid" id="vbGrid">
         <label><input type="radio" name="vbPick" checked><input type="text" class="vbbox" value="bg/1/1" spellcheck="false" autocomplete="off"></label>
         <label><input type="radio" name="vbPick"><input type="text" class="vbbox" value="sb/1/1/1" spellcheck="false" autocomplete="off"></label>
-        <label><input type="radio" name="vbPick"><input type="text" class="vbbox" value="cc/1/1/1" spellcheck="false" autocomplete="off"></label>
+        <label><input type="radio" name="vbPick"><input type="text" class="vbbox" value="cc/adi/1/1" spellcheck="false" autocomplete="off"></label>
         <label><input type="radio" name="vbPick"><input type="text" class="vbbox" value="bg/1" spellcheck="false" autocomplete="off"></label>
         <label><input type="radio" name="vbPick"><input type="text" class="vbbox" value="sb/1/1" spellcheck="false" autocomplete="off"></label>
         <label><input type="radio" name="vbPick"><input type="text" class="vbbox" value="kb/1" spellcheck="false" autocomplete="off"></label>
         <label><input type="radio" name="vbPick"><input type="text" class="vbbox" value="" spellcheck="false" autocomplete="off"></label>
         <label class="vbsp"><input type="radio" name="vbPick" id="vbSpRadio"><input type="text" class="vbbox" value="Daily SP lecture" readonly></label>
       </div>
-      <p class="note remark vbnote">Use + to move to the next verse. Your values are saved, so you can pick up where you left off next time.</p>
+      <ul class="note remark vbnote">
+        <li>Choose a box (edit to any book, ch or verse), Press TTS.</li>
+        <li>Press '+' to go to the next section.</li>
+        <li>Your boxes are saved, so you can pick up where you left off next time.</li>
+      </ul>
     </div>
     <div class="section">
       <div class="section-head">
@@ -717,6 +717,15 @@ function watch(){
   else { retries = 0; speak(idx+1); }            // it refuses — move on
 }
 
+var ICON_READ = playBtn.innerHTML;
+var ICON_PAUSE = '<svg class="icon-tts" viewBox="0 0 24 24" aria-hidden="true"><line x1="9" y1="5" x2="9" y2="19"></line><line x1="15" y1="5" x2="15" y2="19"></line></svg>';
+function setPlayIcon(isPlaying){
+  playBtn.innerHTML = isPlaying ? ICON_PAUSE : ICON_READ;
+  var label = isPlaying ? "Pause" : "Read";
+  playBtn.title = label;
+  playBtn.setAttribute("aria-label", label);
+}
+
 function start(from){
   if (!sentences.length) return;
   if (typeof from === "number") idx = from;   // otherwise: from wherever the cursor sits
@@ -733,7 +742,7 @@ function start(from){
     navigator.mediaSession.setActionHandler('pause', function(){ if (playing) stop(); });
   }
   document.body.classList.remove("idle");
-  playBtn.textContent = "Pause";
+  setPlayIcon(true);
   clearInterval(keepAlive);
   keepAlive = setInterval(function(){
     /* The pause/resume trick keeps desktop Chrome from cutting out at ~15s.
@@ -751,7 +760,7 @@ function stop(){
   synth.cancel();
   releaseWakeLock();
   document.body.classList.add("idle");
-  playBtn.textContent = "Read";
+  setPlayIcon(false);
   mark();
 }
 
@@ -810,8 +819,6 @@ themeBtn.addEventListener("click", function(){
   document.documentElement.setAttribute("data-theme", now);
   remember("theme", now);
 });
-
-$("refreshBtn").addEventListener("click", function(){ location.reload(); });
 
 /* back to the front page — the reading view goes away entirely */
 function toPaste(){
