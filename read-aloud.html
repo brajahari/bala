@@ -52,7 +52,7 @@ button:hover,select:hover{border-color:var(--teal)}
 button:focus-visible,select:focus-visible,textarea:focus-visible,.s:focus-visible{
   outline:2px solid var(--live); outline-offset:2px;
 }
-#play,#edit{
+#play,#edit,#theme{
   background:var(--fg);color:var(--bg);border-color:var(--fg);font-weight:500;
   width:3rem; height:2.15rem; box-sizing:border-box; padding:0;
   display:inline-flex; align-items:center; justify-content:center;
@@ -63,6 +63,7 @@ button:focus-visible,select:focus-visible,textarea:focus-visible,.s:focus-visibl
 /* Read is the main action: wider, in the accent colour; amber while reading, matching the live sentence */
 #play{width:3.75rem; background:var(--accent); border-color:var(--accent); color:var(--bg)}
 body:not(.idle) #play{background:var(--live); border-color:var(--live)}
+#theme .icon-tts{width:1.25rem;height:1.25rem;stroke-width:2.2}
 .icon-back{width:1.3rem;height:1.3rem;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;display:block}
 select{max-width:10rem}
 input[type=range]{accent-color:var(--teal)}
@@ -179,8 +180,8 @@ body.idle .s.cursor{background:var(--panel)}
     <div class="row1">
       <button id="edit" title="Back" aria-label="Back"><svg class="icon-back" viewBox="0 0 24 24" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg></button>
       <button id="play" title="Read" aria-label="Read"><svg class="icon-tts" viewBox="0 0 24 24" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M19 5a10 10 0 0 1 0 14"></path></svg></button>
+      <button id="theme" title="Light or dark" aria-label="Light or dark"><svg class="icon-tts" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><line x1="12" y1="2" x2="12" y2="4"></line><line x1="12" y1="20" x2="12" y2="22"></line><line x1="2" y1="12" x2="4" y2="12"></line><line x1="20" y1="12" x2="22" y2="12"></line><line x1="4.9" y1="4.9" x2="6.3" y2="6.3"></line><line x1="17.7" y1="17.7" x2="19.1" y2="19.1"></line><line x1="4.9" y1="19.1" x2="6.3" y2="17.7"></line><line x1="17.7" y1="6.3" x2="19.1" y2="4.9"></line></svg></button>
       <select id="voice" aria-label="Voice"></select>
-      <button id="theme" title="Light or dark">&#9788;</button>
     </div>
     <div class="row3">
       <select id="rate" aria-label="Speed">
@@ -217,9 +218,9 @@ body.idle .s.cursor{background:var(--panel)}
         <label class="vbsp"><input type="radio" name="vbPick" id="vbSpRadio"><input type="text" class="vbbox" value="Daily SP lecture" readonly></label>
       </div>
       <ul class="note remark vbnote">
-        <li>Choose a box (edit to any book, ch or verse), Press TTS.</li>
+        <li>Choose a box, edit it to any book, ch or verse, then press TTS.</li>
         <li>'+'/'−' for next/pre section.</li>
-        <li>Box values are saved, so you can pick up from where you left off.</li>
+        <li>Box values are saved, to pick up where you left off.</li>
       </ul>
     </div>
     <div class="section">
@@ -830,7 +831,16 @@ themeBtn.addEventListener("click", function(){
   var now = document.documentElement.getAttribute("data-theme")==="day" ? "night" : "day";
   document.documentElement.setAttribute("data-theme", now);
   remember("theme", now);
+  setThemeIcon();
 });
+/* shows what a tap will switch to: sun while dark, moon while light */
+var ICON_SUN = '<svg class="icon-tts" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><line x1="12" y1="2" x2="12" y2="4"></line><line x1="12" y1="20" x2="12" y2="22"></line><line x1="2" y1="12" x2="4" y2="12"></line><line x1="20" y1="12" x2="22" y2="12"></line><line x1="4.9" y1="4.9" x2="6.3" y2="6.3"></line><line x1="17.7" y1="17.7" x2="19.1" y2="19.1"></line><line x1="4.9" y1="19.1" x2="6.3" y2="17.7"></line><line x1="17.7" y1="6.3" x2="19.1" y2="4.9"></line></svg>';
+var ICON_MOON = '<svg class="icon-tts" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>';
+function setThemeIcon(){
+  var day = document.documentElement.getAttribute("data-theme")==="day";
+  themeBtn.innerHTML = day ? ICON_MOON : ICON_SUN;
+  themeBtn.title = day ? "Switch to dark" : "Switch to light";
+}
 
 /* back to the front page — the reading view goes away entirely */
 function toPaste(){
@@ -1018,6 +1028,7 @@ window.addEventListener("beforeunload", function(){ synth.cancel(); });
 (function(){
   var th = recall("theme");
   if (th) document.documentElement.setAttribute("data-theme", th);
+  setThemeIcon();
   var r = recall("rate");
   if (r && ["1","1.25","1.5"].indexOf(r) !== -1) rate.value = r;
 
