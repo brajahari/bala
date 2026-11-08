@@ -452,6 +452,15 @@ function fetchDoc(url, then, onFail, skipRemember){
       if (!main) return stripHTML(html);
       var skip = main.querySelectorAll(".av-devanagari");
       for (var i=0;i<skip.length;i++) skip[i].remove();
+      var crumb = main.querySelector('nav[aria-label="Breadcrumb"] li');   // the leading "Library /"
+      if (crumb) crumb.remove();
+      /* the site's own view-switcher buttons aren't part of the reading */
+      var all = main.querySelectorAll("a,div,span,button");
+      for (var j=0;j<all.length;j++){
+        var label = all[j].textContent.replace(/\s+/g,"").toLowerCase();
+        if (label === "defaultview" || label === "advancedview" || label === "duallanguageview" || label === "showinadvancedview")
+          all[j].remove();
+      }
       return stripHTML(main.outerHTML);
     });
   } else {
