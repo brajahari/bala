@@ -96,9 +96,7 @@ input[type=url]{
 }
 input[type=url]::placeholder{color:var(--fg);opacity:.35}
 input[type=url]:focus-visible{outline:2px solid var(--live);outline-offset:2px}
-.vbgrid{display:grid; grid-template-columns:repeat(2,1fr); gap:.5rem .6rem}
-.vbgrid .vbsp{grid-column:1; margin-top:.3rem}
-/* card text: one main line in the body colour, secondary notes smaller in teal */
+.vbgrid{display:grid; grid-template-columns:repeat(2,1fr); gap:.5rem .6rem}/* card text: one main line in the body colour, secondary notes smaller in teal */
 .live-now{margin:0; font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.85rem; font-weight:500; line-height:1.5; color:var(--fg)}
 .note{margin:.5rem 0 0; font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.75rem; line-height:1.5; color:var(--teal)}
 .note:empty{display:none}
@@ -215,7 +213,6 @@ body.idle .s.cursor{background:var(--panel)}
         <label><input type="radio" name="vbPick"><input type="text" class="vbbox" value="bg/1" spellcheck="false" autocomplete="off"></label>
         <label><input type="radio" name="vbPick"><input type="text" class="vbbox" value="sb/1/1" spellcheck="false" autocomplete="off"></label>
         <label><input type="radio" name="vbPick"><input type="text" class="vbbox" value="kb/1" spellcheck="false" autocomplete="off"></label>
-        <label><input type="radio" name="vbPick"><input type="text" class="vbbox" value="" spellcheck="false" autocomplete="off"></label>
         <label><input type="radio" name="vbPick"><input type="text" class="vbbox" value="" spellcheck="false" autocomplete="off"></label>
         <label class="vbsp"><input type="radio" name="vbPick" id="vbSpRadio"><input type="text" class="vbbox" value="Daily SP lecture" readonly></label>
       </div>
