@@ -111,6 +111,16 @@ input[type=url]:focus-visible{outline:2px solid var(--live);outline-offset:2px}
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
 .combo-list li:hover,.combo-list li.active{background:var(--panel); color:var(--accent)}
+.vbgrid{display:grid; grid-template-columns:1fr 1fr; gap:.5rem .6rem; margin-bottom:1rem}
+.vbgrid label{display:flex; align-items:center; gap:.4rem; min-width:0}
+.vbgrid input[type=radio]{accent-color:var(--accent); margin:0; flex:none}
+.vbbox{
+  flex:1 1 auto; min-width:0;
+  background:var(--panel); color:var(--fg);
+  border:1px solid var(--rule); border-radius:2px; padding:.45rem .6rem;
+  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.78rem;
+}
+.vbbox:focus-visible{outline:2px solid var(--live);outline-offset:2px}
 .status{
   font-family:"IBM Plex Mono",monospace; font-size:.72rem; line-height:1.7;
   color:var(--teal); margin:.9rem 0 0; min-height:1.2rem;
@@ -205,6 +215,23 @@ body.idle .s.cursor{background:var(--panel)}
         <button id="decLink" class="highlight" style="margin-left:auto;font-weight:700" title="Decrease last number in link by 1">−</button>
         <button id="incLink" class="highlight" style="font-weight:700" title="Increase last number in link by 1">+</button>
         <button id="openLink" class="highlight" style="font-weight:700" title="Open link in new tab">↗</button>
+      </div>
+    </div>
+    <div class="section">
+      <p class="section-title">Vedabase (choose a box)</p>
+      <div class="vbgrid" id="vbGrid">
+        <label><input type="radio" name="vbPick" checked><input type="text" class="vbbox" value="bg/1/1" spellcheck="false" autocomplete="off"></label>
+        <label><input type="radio" name="vbPick"><input type="text" class="vbbox" value="sb/1/1/1" spellcheck="false" autocomplete="off"></label>
+        <label><input type="radio" name="vbPick"><input type="text" class="vbbox" value="cc/1/1/1" spellcheck="false" autocomplete="off"></label>
+        <label><input type="radio" name="vbPick"><input type="text" class="vbbox" value="kb/1" spellcheck="false" autocomplete="off"></label>
+        <label><input type="radio" name="vbPick"><input type="text" class="vbbox" value="" spellcheck="false" autocomplete="off"></label>
+        <label><input type="radio" name="vbPick"><input type="text" class="vbbox" value="" spellcheck="false" autocomplete="off"></label>
+      </div>
+      <div class="actions">
+        <button id="vbFetch" class="highlight">TTS Link</button>
+        <button id="vbDec" class="highlight" style="margin-left:auto;font-weight:700" title="Decrease last number by 1">−</button>
+        <button id="vbInc" class="highlight" style="font-weight:700" title="Increase last number by 1">+</button>
+        <button id="vbOpen" class="highlight" style="font-weight:700" title="Open link in new tab">↗</button>
       </div>
     </div>
     <div class="section">
@@ -829,20 +856,40 @@ $("openLink").addEventListener("click", function(){
   var url = docUrl.value.trim();
   if (url) window.open(url, "_blank");
 });
-$("incLink").addEventListener("click", function(){
-  var url = docUrl.value;
-  var m = url.match(/\d+(?!.*\d)/);
-  if (!m) return;
-  var incremented = String(Number(m[0]) + 1);
-  docUrl.value = url.slice(0, m.index) + incremented + url.slice(m.index + m[0].length);
+function bumpLast(s, delta){
+  var m = s.match(/\d+(?!.*\d)/);
+  if (!m) return s;
+  var n = Number(m[0]) + delta;
+  if (n < 0) return s;
+  return s.slice(0, m.index) + String(n) + s.slice(m.index + m[0].length);
+}
+$("incLink").addEventListener("click", function(){ docUrl.value = bumpLast(docUrl.value, 1); });
+$("decLink").addEventListener("click", function(){ docUrl.value = bumpLast(docUrl.value, -1); });
+
+/* ─── Vedabase boxes: the checked box's path is appended to the library URL ─── */
+var VEDABASE = "https://vedabase.io/en/library/";
+var vbGrid = $("vbGrid");
+function vbBox(){
+  var r = vbGrid.querySelector("input[type=radio]:checked");
+  return r ? r.parentNode.querySelector(".vbbox") : null;
+}
+function vbUrl(){
+  var b = vbBox();
+  var path = b ? b.value.trim().replace(/^\/+/, "") : "";
+  return path ? VEDABASE + path : "";
+}
+vbGrid.addEventListener("focusin", function(e){
+  if (e.target.classList.contains("vbbox")) e.target.parentNode.querySelector("input[type=radio]").checked = true;
 });
-$("decLink").addEventListener("click", function(){
-  var url = docUrl.value;
-  var m = url.match(/\d+(?!.*\d)/);
-  if (!m) return;
-  var n = Number(m[0]) - 1;
-  if (n < 0) return;
-  docUrl.value = url.slice(0, m.index) + String(n) + url.slice(m.index + m[0].length);
+$("vbFetch").addEventListener("click", function(){
+  var url = vbUrl();
+  if (url) fetchDoc(url, present, null, true);
+});
+$("vbInc").addEventListener("click", function(){ var b = vbBox(); if (b) b.value = bumpLast(b.value, 1); });
+$("vbDec").addEventListener("click", function(){ var b = vbBox(); if (b) b.value = bumpLast(b.value, -1); });
+$("vbOpen").addEventListener("click", function(){
+  var url = vbUrl();
+  if (url) window.open(url, "_blank");
 });
 spLectureBtn.addEventListener("click", function(){
   fetchDoc(SP_LECTURE_DOC, present, null, true);
