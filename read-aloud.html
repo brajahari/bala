@@ -81,37 +81,24 @@ textarea{
 textarea::placeholder{color:var(--fg);opacity:.3}
 .actions{display:flex;gap:.6rem;margin-top:.5rem}
 
-/* google doc row */
-.docrow{display:flex;gap:.6rem;margin-bottom:1.2rem;flex-wrap:wrap}
-.combo{position:relative; flex:1 1 14rem; min-width:0}
+/* link / free-text source */
+.modes{display:flex; gap:1.2rem; margin-bottom:.4rem;
+  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.8rem}
+.modes label{display:flex; align-items:center; gap:.35rem; cursor:pointer}
+.modes input{accent-color:var(--accent); margin:0}
 input[type=url]{
-  width:100%;
+  width:100%; margin-top:.9rem;
   background:var(--panel); color:var(--fg);
-  border:1px solid var(--rule); border-radius:2px; padding:.5rem .7rem .5rem 2.6rem;
+  border:1px solid var(--rule); border-radius:2px; padding:.5rem .7rem;
   font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.78rem;
 }
+input[type=url]::placeholder{color:var(--fg);opacity:.35}
 input[type=url]:focus-visible{outline:2px solid var(--live);outline-offset:2px}
-.combo-toggle{
-  position:absolute; top:0; left:0; bottom:0; width:2.3rem;
-  display:flex; align-items:center; justify-content:center;
-  background:transparent; border:0; border-right:1px solid var(--rule);
-  color:var(--fg); cursor:pointer; font-size:2rem; padding:0;
+.vbgrid{display:grid; grid-template-columns:repeat(3,1fr); gap:.5rem .6rem}
+.vbbox[readonly]{
+  cursor:pointer; font-weight:600; text-align:center;
+  color:#B45309; background:rgba(245,158,11,.14); border-color:rgba(245,158,11,.6);
 }
-.combo-toggle:hover,.combo-toggle[aria-expanded="true"]{background:rgba(var(--accent-rgb),.12); color:var(--accent); border-right-color:var(--accent)}
-.combo-list{
-  position:absolute; z-index:30; top:calc(100% + .3rem); left:0; right:0;
-  margin:0; padding:.3rem; list-style:none;
-  background:var(--bg); border:1px solid var(--rule); border-radius:2px;
-  box-shadow:0 .3rem .9rem rgba(0,0,0,.25);
-  max-height:12rem; overflow:auto;
-}
-.combo-list li{
-  padding:.45rem .5rem; border-radius:2px; cursor:pointer;
-  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.76rem;
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-}
-.combo-list li:hover,.combo-list li.active{background:var(--panel); color:var(--accent)}
-.vbgrid{display:grid; grid-template-columns:1fr 1fr; gap:.5rem .6rem; margin-bottom:1rem}
 .vbgrid label{display:flex; align-items:center; gap:.4rem; min-width:0}
 .vbgrid input[type=radio]{accent-color:var(--accent); margin:0; flex:none}
 .vbbox{
@@ -130,6 +117,14 @@ input[type=url]:focus-visible{outline:2px solid var(--live);outline-offset:2px}
   font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.85rem; font-weight:600;
   color:var(--fg); margin:0 0 .6rem;
 }
+/* card header: title on the left, that card's buttons on the right, primary action last */
+.section-head{display:flex; align-items:center; gap:.45rem; margin-bottom:.9rem}
+.section-head .section-title{margin:0; margin-right:auto}
+.section-head button{min-width:2.4rem; font-weight:700}
+.section-head .tool{color:var(--teal)}
+.section-head .primary{min-width:4.2rem}
+#status{margin:0 0 1rem}
+#status:empty{display:none}
 .hint-text{font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.85rem; color:#F59E0B; opacity:1}
 .section{
   padding:1rem; border:1px solid var(--rule); border-radius:3px;
@@ -195,52 +190,34 @@ body.idle .s.cursor{background:var(--panel)}
   </div>
 
   <section id="pasteView">
+    <p class="status" id="status" role="status" aria-live="polite"></p>
     <div class="section">
-      <p class="section-title">Link (choose, type, edit...)</p>
-      <div class="docrow">
-        <div class="combo" id="docUrlCombo">
-          <input type="url" id="docUrl" spellcheck="false" autocomplete="off" aria-label="Page or Google Doc link"
-                 placeholder="vedabase.io/en/library/bg/1/">
-          <button type="button" id="docUrlToggle" class="combo-toggle" aria-label="Show link choices" aria-expanded="false">&#9662;</button>
-          <ul class="combo-list hidden" id="docUrlList" role="listbox">
-            <li role="option" id="bgListItem" data-value="https://vedabase.io/en/library/bg/1/">https://vedabase.io/en/library/bg/1/</li>
-            <li role="option" id="sbListItem" data-value="https://vedabase.io/en/library/sb/1/1">https://vedabase.io/en/library/sb/1/1</li>
-            <li role="option" id="ccListItem" data-value="https://vedabase.io/en/library/cc/adi/1/">https://vedabase.io/en/library/cc/adi/1/</li>
-            <li role="option" id="kbListItem" data-value="https://vedabase.io/en/library/kb/1/">https://vedabase.io/en/library/kb/1/</li>
-          </ul>
-        </div>
+      <div class="section-head">
+        <p class="section-title">Vedabase</p>
+        <button id="vbDec" class="tool" title="Decrease last number by 1" aria-label="Previous">−</button>
+        <button id="vbInc" class="tool" title="Increase last number by 1" aria-label="Next">+</button>
+        <button id="vbOpen" class="tool" title="Open link in new tab" aria-label="Open link in new tab">↗</button>
+        <button id="vbFetch" class="highlight primary">TTS</button>
       </div>
-      <div class="actions">
-        <button id="fetchDoc" class="highlight">TTS Link</button>
-        <button id="decLink" class="highlight" style="margin-left:auto;font-weight:700" title="Decrease last number in link by 1">−</button>
-        <button id="incLink" class="highlight" style="font-weight:700" title="Increase last number in link by 1">+</button>
-        <button id="openLink" class="highlight" style="font-weight:700" title="Open link in new tab">↗</button>
-      </div>
-    </div>
-    <div class="section">
-      <p class="section-title">Vedabase (choose a box)</p>
       <div class="vbgrid" id="vbGrid">
         <label><input type="radio" name="vbPick" checked><input type="text" class="vbbox" value="bg/1/1" spellcheck="false" autocomplete="off"></label>
         <label><input type="radio" name="vbPick"><input type="text" class="vbbox" value="sb/1/1/1" spellcheck="false" autocomplete="off"></label>
         <label><input type="radio" name="vbPick"><input type="text" class="vbbox" value="cc/1/1/1" spellcheck="false" autocomplete="off"></label>
+        <label><input type="radio" name="vbPick"><input type="text" class="vbbox" value="bg/1" spellcheck="false" autocomplete="off"></label>
+        <label><input type="radio" name="vbPick"><input type="text" class="vbbox" value="sb/1/1" spellcheck="false" autocomplete="off"></label>
         <label><input type="radio" name="vbPick"><input type="text" class="vbbox" value="kb/1" spellcheck="false" autocomplete="off"></label>
         <label><input type="radio" name="vbPick"><input type="text" class="vbbox" value="" spellcheck="false" autocomplete="off"></label>
         <label><input type="radio" name="vbPick"><input type="text" class="vbbox" value="" spellcheck="false" autocomplete="off"></label>
-      </div>
-      <div class="actions">
-        <button id="vbFetch" class="highlight">TTS Link</button>
-        <button id="vbDec" class="highlight" style="margin-left:auto;font-weight:700" title="Decrease last number by 1">−</button>
-        <button id="vbInc" class="highlight" style="font-weight:700" title="Increase last number by 1">+</button>
-        <button id="vbOpen" class="highlight" style="font-weight:700" title="Open link in new tab">↗</button>
+        <label><input type="radio" name="vbPick" id="vbSpRadio"><input type="text" class="vbbox" value="Daily SP lecture" readonly></label>
       </div>
     </div>
     <div class="section">
-      <p class="section-title">SP Live</p>
-      <div class="actions" style="align-items:center;margin-top:.8rem">
-        <button id="livePlay" class="highlight">Play</button>
-        <button id="liveStop" style="display:none" class="highlight">Stop</button>
-        <span class="status" id="liveNowPlaying" style="margin:0"></span>
+      <div class="section-head">
+        <p class="section-title">SP Live</p>
+        <button id="livePlay" class="highlight primary">Play</button>
+        <button id="liveStop" style="display:none" class="highlight primary">Stop</button>
       </div>
+      <p class="status" id="liveNowPlaying" style="margin:0"></p>
       <p class="hint-text" id="liveNext" style="margin-top:.6rem"></p>
       <p class="hint-text" style="margin-top:.4rem;color:var(--teal)">[You may lock the phone while hearing]</p>
       <audio id="liveAudio">
@@ -249,19 +226,18 @@ body.idle .s.cursor{background:var(--panel)}
     </div>
 
     <div class="section">
-      <p class="section-title">Daily SP lecture</p>
-      <div class="actions">
-        <button id="spLecture" class="highlight">TTS SP Lecture</button>
+      <div class="section-head">
+        <p class="section-title">Any link or text</p>
+        <button id="openLink" class="tool" title="Open link in new tab" aria-label="Open link in new tab">↗</button>
+        <button id="load" class="highlight primary">TTS</button>
       </div>
-    </div>
-
-    <div class="section">
-      <p class="section-title">Any text</p>
-      <div class="actions">
-        <button id="load" class="highlight">TTS Text</button>
+      <div class="modes" role="radiogroup" aria-label="Source">
+        <label><input type="radio" name="srcMode" value="link" checked> Link</label>
+        <label><input type="radio" name="srcMode" value="text"> Free text</label>
       </div>
-      <textarea id="input" placeholder="Write/Paste here&#8230;" spellcheck="false"></textarea>
-      <p class="status" id="status" role="status" aria-live="polite"></p>
+      <input type="url" id="docUrl" spellcheck="false" autocomplete="off" aria-label="Website or Google Doc link"
+             placeholder="https://website-here.com/page  (or a Google Doc link)">
+      <textarea id="input" class="hidden" placeholder="Write/Paste here&#8230;" spellcheck="false"></textarea>
     </div>
   </section>
 
@@ -306,7 +282,7 @@ var bar=$("bar"), playBtn=$("play"),
     themeBtn=$("theme"),
     count=$("count"), textEl=$("text"), pasteView=$("pasteView"),
     input=$("input"), loadBtn=$("load"), seek=$("seek"),
-    docUrl=$("docUrl"), fetchBtn=$("fetchDoc"), spLectureBtn=$("spLecture"), status=$("status");
+    docUrl=$("docUrl"), fetchBtn=loadBtn, status=$("status");
 
 /* idx IS the cursor: where reading is now, or where it starts next. */
 var sentences=[], nodes=[], idx=0, playing=false, keepAlive=null, voices=[], dragging=false, wakeLock=null;
@@ -414,8 +390,8 @@ function say(msg, bad){
   status.classList.toggle("bad", !!bad);
 }
 
-function get(u){
-  return fetch(u, { credentials:"omit", cache:"no-store" }).then(function(r){
+function get(u, headers){
+  return fetch(u, { credentials:"omit", cache:"no-store", headers:headers }).then(function(r){
     /* Google answers these itself and means them — no point asking anywhere else. */
     if (r.status === 401 || r.status === 403) throw new Error("private");
     if (r.status === 404) throw new Error("no-doc");
@@ -458,6 +434,18 @@ function fetchDoc(url, then, onFail, skipRemember){
         say("Opened from disk, so reading it through r.jina.ai…");
         return get(READER + page).then(unreader);
       });
+  } else if (/^https?:\/\/(www\.)?vedabase\.io\//i.test(page)){
+    /* The reader's markdown mode drops Vedabase's Synonyms and Translation
+       blocks, so take the raw HTML and pull the page body out ourselves. */
+    say("Fetching the page through r.jina.ai…");
+    attempt = get(READER + page, { "X-Return-Format":"html" }).then(function(html){
+      var d = new DOMParser().parseFromString(html, "text/html");
+      var main = d.querySelector("main");
+      if (!main) return stripHTML(html);
+      var skip = main.querySelectorAll(".av-devanagari");
+      for (var i=0;i<skip.length;i++) skip[i].remove();
+      return stripHTML(main.outerHTML);
+    });
   } else {
     say("Fetching the page through r.jina.ai…");
     attempt = get(READER + page).then(unreader);
@@ -830,7 +818,7 @@ function toPaste(){
 editBtn.addEventListener("click", function(){
   toPaste();
   say("");
-  input.focus();
+  focusSource();
 });
 
 /* text (from anywhere) → the reading view */
@@ -846,13 +834,36 @@ function present(t){
   return true;
 }
 
+/* ─── "Any link or text": one box at a time, picked by the Link / Free text radios ─── */
+var openLinkBtn = $("openLink");
+function srcMode(){
+  var r = document.querySelector("input[name=srcMode]:checked");
+  return r ? r.value : "link";
+}
+function focusSource(){ (srcMode() === "link" ? docUrl : input).focus(); }
+function setMode(m){
+  var isLink = m === "link";
+  document.querySelector("input[name=srcMode][value=" + m + "]").checked = true;
+  docUrl.classList.toggle("hidden", !isLink);
+  input.classList.toggle("hidden", isLink);
+  openLinkBtn.classList.toggle("hidden", !isLink);
+  loadBtn.textContent = isLink ? "TTS" : "TTS Text";
+  remember("mode", m);
+}
+document.querySelectorAll("input[name=srcMode]").forEach(function(r){
+  r.addEventListener("change", function(){ setMode(r.value); say(""); focusSource(); });
+});
+
 loadBtn.addEventListener("click", function(){
+  if (srcMode() === "link"){
+    if (docUrl.value.trim()) fetchDoc(docUrl.value, present);
+    else docUrl.focus();
+    return;
+  }
   var t = tidy(input.value);
   if (!t || !present(t)) input.focus();
 });
-
-fetchBtn.addEventListener("click", function(){ fetchDoc(docUrl.value, present); });
-$("openLink").addEventListener("click", function(){
+openLinkBtn.addEventListener("click", function(){
   var url = docUrl.value.trim();
   if (url) window.open(url, "_blank");
 });
@@ -863,8 +874,6 @@ function bumpLast(s, delta){
   if (n < 0) return s;
   return s.slice(0, m.index) + String(n) + s.slice(m.index + m[0].length);
 }
-$("incLink").addEventListener("click", function(){ docUrl.value = bumpLast(docUrl.value, 1); });
-$("decLink").addEventListener("click", function(){ docUrl.value = bumpLast(docUrl.value, -1); });
 
 /* ─── Vedabase boxes: the checked box's path is appended to the library URL ─── */
 var VEDABASE = "https://vedabase.io/en/library/";
@@ -875,7 +884,9 @@ function vbBox(){
 }
 function vbUrl(){
   var b = vbBox();
-  var path = b ? b.value.trim().replace(/^\/+/, "") : "";
+  if (!b) return "";
+  if (b.readOnly) return SP_LECTURE_DOC;
+  var path = b.value.trim().replace(/^\/+/, "");
   return path ? VEDABASE + path : "";
 }
 vbGrid.addEventListener("focusin", function(e){
@@ -890,9 +901,6 @@ $("vbDec").addEventListener("click", function(){ var b = vbBox(); if (b) b.value
 $("vbOpen").addEventListener("click", function(){
   var url = vbUrl();
   if (url) window.open(url, "_blank");
-});
-spLectureBtn.addEventListener("click", function(){
-  fetchDoc(SP_LECTURE_DOC, present, null, true);
 });
 
 /* ─── SP Live radio stream ─── */
@@ -935,29 +943,7 @@ updateLiveInfo();
 setInterval(updateLiveInfo, 15000);
 
 docUrl.addEventListener("keydown", function(e){
-  if (e.key === "Enter"){ e.preventDefault(); fetchDoc(docUrl.value, present); }
-  if (e.key === "Escape") closeDocList();
-});
-
-/* ─── link box: editable text field + a small dropdown of preset links ─── */
-var docUrlCombo = $("docUrlCombo"), docUrlToggle = $("docUrlToggle"), docUrlList = $("docUrlList");
-function openDocList(){ docUrlList.classList.remove("hidden"); docUrlToggle.setAttribute("aria-expanded","true"); }
-function closeDocList(){ docUrlList.classList.add("hidden"); docUrlToggle.setAttribute("aria-expanded","false"); }
-docUrlToggle.addEventListener("click", function(e){
-  e.preventDefault();
-  docUrlList.classList.contains("hidden") ? openDocList() : closeDocList();
-  docUrl.focus();
-});
-docUrlList.addEventListener("mousedown", function(e){
-  var li = e.target.closest("li[data-value]");
-  if (!li) return;
-  e.preventDefault();                 // keep focus from bouncing off docUrl before we set it
-  docUrl.value = li.getAttribute("data-value");
-  closeDocList();
-  docUrl.focus();
-});
-document.addEventListener("click", function(e){
-  if (!docUrlCombo.contains(e.target)) closeDocList();
+  if (e.key === "Enter"){ e.preventDefault(); loadBtn.click(); }
 });
 
 input.addEventListener("paste", function(e){
@@ -989,39 +975,12 @@ window.addEventListener("beforeunload", function(){ synth.cancel(); });
   var r = recall("rate");
   if (r && ["1","1.25","1.5"].indexOf(r) !== -1) rate.value = r;
 
-  /* ?doc=<link or id> in the address bar wins, then the last doc read. First visit
-     ever (nothing remembered yet) leaves the box empty — the dropdown covers picking a link. */
+  /* ?doc=<link or id> in the address bar wins (and forces Link mode), then the last link read. */
   var q = null;
   try { q = new URLSearchParams(location.search).get("doc"); } catch(e){}
   docUrl.value = q || recall("doc") || "";
-
-  input.focus();
-  // User must click "Fetch doc" to load — don't auto-fetch
-
-  var kbLi = $("kbListItem");
-  if (kbLi){
-    var kbUrl = "https://vedabase.io/en/library/kb/" + (Math.floor(Math.random()*90)+1) + "/";
-    kbLi.setAttribute("data-value", kbUrl);
-    kbLi.textContent = kbUrl;
-  }
-  var bgLi = $("bgListItem");
-  if (bgLi){
-    var bgUrl = "https://vedabase.io/en/library/bg/" + (Math.floor(Math.random()*18)+1) + "/";
-    bgLi.setAttribute("data-value", bgUrl);
-    bgLi.textContent = bgUrl;
-  }
-  var sbLi = $("sbListItem");
-  if (sbLi){
-    var sbUrl = "https://vedabase.io/en/library/sb/1/" + (Math.floor(Math.random()*19)+1);
-    sbLi.setAttribute("data-value", sbUrl);
-    sbLi.textContent = sbUrl;
-  }
-  var ccLi = $("ccListItem");
-  if (ccLi){
-    var ccUrl = "https://vedabase.io/en/library/cc/adi/" + (Math.floor(Math.random()*17)+1) + "/";
-    ccLi.setAttribute("data-value", ccUrl);
-    ccLi.textContent = ccUrl;
-  }
+  setMode(q ? "link" : (recall("mode") === "text" ? "text" : "link"));
+  // User must click TTS to load — don't auto-fetch
 })();
 
 })();
