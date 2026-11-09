@@ -75,8 +75,6 @@ input[type=range]{accent-color:var(--teal)}
 /* the seek slider expands to fill remaining space */
 #seek{flex:1 1 auto;cursor:pointer}
 .count{font-family:"IBM Plex Mono",monospace;font-size:.72rem;color:var(--teal)}
-.row-hint{display:flex;justify-content:flex-start}
-body:not(.idle) .row-hint{display:none}   /* hidden while reading, shown when paused */
 
 /* paste view */
 #pasteView{padding-top:.5rem; clear:both}
@@ -147,6 +145,8 @@ input[type=url]:focus-visible{outline:2px solid var(--live);outline-offset:2px}
 #refreshBtn:hover{opacity:1}
 #status{margin:0 0 1rem}
 #status:empty{display:none}
+#readHint{margin:.9rem 0 0}
+body.landing #readHint{display:none}
 .hint-text{font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.85rem; color:#F59E0B; opacity:1}
 .section{
   padding:1rem; border:1px solid var(--rule); border-radius:3px;
@@ -194,9 +194,6 @@ body.idle .s.cursor{background:var(--panel)}
       <button id="play" title="Read" aria-label="Read"><svg class="icon-tts" viewBox="0 0 24 24" aria-hidden="true"><polygon points="7 4 20 12 7 20 7 4" fill="currentColor"></polygon></svg>READ</button>
       <select id="voice" aria-label="Voice"></select>
       <button id="theme" title="Light or dark" aria-label="Light or dark"><svg class="icon-tts" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><line x1="12" y1="2" x2="12" y2="4"></line><line x1="12" y1="20" x2="12" y2="22"></line><line x1="2" y1="12" x2="4" y2="12"></line><line x1="20" y1="12" x2="22" y2="12"></line><line x1="4.9" y1="4.9" x2="6.3" y2="6.3"></line><line x1="17.7" y1="17.7" x2="19.1" y2="19.1"></line><line x1="4.9" y1="19.1" x2="6.3" y2="17.7"></line><line x1="17.7" y1="6.3" x2="19.1" y2="4.9"></line></svg></button>
-    </div>
-    <div class="row-hint">
-      <span class="hint-text">Tap any text to change the read-position.</span>
     </div>
     <div class="row3">
       <select id="rate" aria-label="Speed">
@@ -266,6 +263,7 @@ body.idle .s.cursor{background:var(--panel)}
     <div class="refresh-row"><button id="refreshBtn" title="Reload the page" aria-label="Reload the page">&#8635;</button></div>
   </section>
 
+  <p class="hint-text" id="readHint">Tap any text, any time, to change the read-position.</p>
   <article id="text"></article>
 </div>
 
