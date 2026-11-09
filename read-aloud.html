@@ -59,7 +59,11 @@ button:focus-visible,select:focus-visible,textarea:focus-visible,.s:focus-visibl
 }
 .section-head .primary{display:inline-flex; align-items:center; justify-content:center; gap:.4rem}
 .icon-tts{width:1rem;height:1rem;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
-#play{width:5.6rem; gap:.4rem}
+#play{width:3.75rem; gap:.25rem; font-size:.7rem}
+#play .icon-tts{width:.85rem; height:.85rem}
+/* first toolbar row never wraps: the voice dropdown shrinks to fit instead */
+.bar .row1{flex-wrap:nowrap}
+#voice{flex:1 1 0; min-width:0}
 #theme .icon-tts{width:1.25rem;height:1.25rem;stroke-width:2.2}
 .icon-back{width:1.3rem;height:1.3rem;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;display:block}
 select{max-width:10rem}
