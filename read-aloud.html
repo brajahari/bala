@@ -32,11 +32,12 @@ body{
   font-size:20px; line-height:1.75; -webkit-font-smoothing:antialiased;
 }
 .wrap{max-width:40rem;margin:0 auto;padding:0 1.25rem 8rem}
+body:not(.landing) .wrap{padding-bottom:0}   /* reading view: the bar sits at the very end of the page */
 
 /* toolbar */
 .bar{
-  position:sticky; top:0; z-index:20; background:var(--bg);
-  border-bottom:1px solid var(--rule);
+  position:sticky; bottom:0; z-index:20; background:var(--bg);
+  border-top:1px solid var(--rule);
   margin:0 -1.25rem; padding:.7rem 1.25rem;
   display:flex; flex-direction:column; gap:.6rem;
 }
@@ -147,7 +148,7 @@ input[type=url]:focus-visible{outline:2px solid var(--live);outline-offset:2px}
 #refreshBtn:hover{opacity:1}
 #status{margin:0 0 1rem}
 #status:empty{display:none}
-#readHint{margin:.9rem 0 0}
+#readHint{margin:1.5rem 0 0}
 body.landing #readHint{display:none}
 .hint-text{font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.85rem; color:#F59E0B; opacity:1}
 .section{
@@ -161,7 +162,7 @@ body.landing .section{
 }
 
 /* reading view */
-#text{margin-top:2.5rem;overflow-x:hidden}
+#text{margin-top:1.2rem;margin-bottom:1.5rem;overflow-x:hidden}
 #text p{margin:0 0 1.4rem;word-break:break-word;overflow-wrap:break-word}
 .s{opacity:var(--dim);transition:opacity .3s ease;cursor:text;border-radius:2px;display:inline;word-break:break-word}
 .s:hover{opacity:.75}
@@ -190,24 +191,6 @@ body.idle .s.cursor{background:var(--panel)}
 
 <div class="wrap">
 
-  <div class="bar hidden" id="bar">
-    <div class="row1">
-      <button id="edit" title="Back" aria-label="Back"><svg class="icon-back" viewBox="0 0 24 24" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg></button>
-      <button id="play" title="Read" aria-label="Read"><svg class="icon-tts" viewBox="0 0 24 24" aria-hidden="true"><polygon points="7 4 20 12 7 20 7 4" fill="currentColor"></polygon></svg>READ</button>
-      <select id="voice" aria-label="Voice"></select>
-      <button id="theme" title="Light or dark" aria-label="Light or dark"><svg class="icon-tts" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"></path></svg></button>
-    </div>
-    <div class="row3">
-      <select id="rate" aria-label="Speed">
-        <option value="1" selected>1x</option>
-        <option value="1.25">1.25x</option>
-        <option value="1.5">1.5x</option>
-      </select>
-      <input type="range" id="seek" min="0" max="0" value="0" step="1" aria-label="Position in text">
-      <span class="count" id="count"></span>
-    </div>
-  </div>
-
   <section id="pasteView">
     <p class="status" id="status" role="status" aria-live="polite"></p>
     <div class="section">
@@ -228,7 +211,7 @@ body.idle .s.cursor{background:var(--panel)}
         <label><input type="radio" name="vbPick"><input type="text" class="vbbox" value="" spellcheck="false" autocomplete="off"></label>
         <label class="vbsp"><input type="radio" name="vbPick" id="vbSpRadio"><input type="text" class="vbbox" value="Daily SP lecture" readonly></label>
       </div>
-      <p class="note remark" style="margin-top:.9rem"><span class="dot">&bull;</span>Choose a box. You may edit it to any book, ch or verse. Press TTS to hear/read. <span class="dot">&bull;</span>Use '+' for next section. <span class="dot">&bull;</span>Box values are auto-saved, like a bookmark.</p>
+      <p class="note remark" style="margin-top:.9rem"><span class="dot">&bull;</span>Choose a box. You may edit it to any book, chapter or verse. Press TTS to hear/read. <span class="dot">&bull;</span>Use '+' for next section. <span class="dot">&bull;</span>Box values are auto-saved, like a bookmark.</p>
     </div>
     <div class="section">
       <div class="section-head">
@@ -264,6 +247,24 @@ body.idle .s.cursor{background:var(--panel)}
 
   <p class="hint-text" id="readHint">Tap any text, any time, to change the read-position.</p>
   <article id="text"></article>
+
+  <div class="bar hidden" id="bar">
+    <div class="row3">
+      <select id="rate" aria-label="Speed">
+        <option value="1" selected>1x</option>
+        <option value="1.25">1.25x</option>
+        <option value="1.5">1.5x</option>
+      </select>
+      <input type="range" id="seek" min="0" max="0" value="0" step="1" aria-label="Position in text">
+      <span class="count" id="count"></span>
+    </div>
+    <div class="row1">
+      <button id="edit" title="Back" aria-label="Back"><svg class="icon-back" viewBox="0 0 24 24" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg></button>
+      <button id="play" title="Read" aria-label="Read"><svg class="icon-tts" viewBox="0 0 24 24" aria-hidden="true"><polygon points="7 4 20 12 7 20 7 4" fill="currentColor"></polygon></svg>READ</button>
+      <select id="voice" aria-label="Voice"></select>
+      <button id="theme" title="Light or dark" aria-label="Light or dark"><svg class="icon-tts" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"></path></svg></button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -649,13 +650,14 @@ function scrollTo(i, instant){
   var el = nodes[i];
   if (!el) return;
   var box = el.getBoundingClientRect();
-  var top = bar.classList.contains("hidden") ? 0 : bar.getBoundingClientRect().height;
-  var lo  = top + window.innerHeight * 0.18;
-  var hi  = top + (window.innerHeight - top) * 0.78;
+  /* the toolbar sits at the bottom now, so the usable screen is what is above it */
+  var avail = window.innerHeight - (bar.classList.contains("hidden") ? 0 : bar.getBoundingClientRect().height);
+  var lo  = avail * 0.18;
+  var hi  = avail * 0.78;
   if (box.top >= lo && box.bottom <= hi) return;   // already sitting comfortably — leave it be
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   window.scrollTo({
-    top: window.scrollY + box.top - (top + (window.innerHeight - top) * 0.38),
+    top: window.scrollY + box.top - avail * 0.38,
     behavior: (reduce || instant) ? "auto" : "smooth"   // a drag wants to keep up, not glide
   });
 }
