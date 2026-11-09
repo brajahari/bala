@@ -870,12 +870,12 @@ function toPaste(){
   document.body.classList.add("landing");
   textEl.innerHTML = "";
   nodes = []; sentences = []; idx = 0;
+  window.scrollTo(0, 0);        // the front page starts at the top, not where the reading left off
 }
 
 editBtn.addEventListener("click", function(){
   toPaste();
-  say("");
-  focusSource();
+  say("");                       // no focusing a box here: it would pop the keypad open
 });
 
 /* text (from anywhere) → the reading view */
