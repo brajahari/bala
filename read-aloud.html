@@ -106,6 +106,7 @@ input[type=url]:focus-visible{outline:2px solid var(--live);outline-offset:2px}
 .live-now{margin:0; font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.85rem; font-weight:500; line-height:1.5; color:var(--fg)}
 .note{margin:.5rem 0 0; font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.75rem; line-height:1.5; color:var(--teal)}
 .note:empty{display:none}
+.note .dot{font-size:1.5em; font-weight:700; line-height:0; vertical-align:-.08em}
 .note.remark{color:#B45309; font-size:.8rem}
 .vbnote{margin-top:.9rem; padding-left:1.1rem}
 .vbnote li+li{margin-top:.15rem}
@@ -227,10 +228,7 @@ body.idle .s.cursor{background:var(--panel)}
         <label><input type="radio" name="vbPick"><input type="text" class="vbbox" value="" spellcheck="false" autocomplete="off"></label>
         <label class="vbsp"><input type="radio" name="vbPick" id="vbSpRadio"><input type="text" class="vbbox" value="Daily SP lecture" readonly></label>
       </div>
-      <ul class="note remark vbnote">
-        <li>Choose a box. You may edit it (any book, ch or verse). Press TTS to hear/read.</li>
-        <li>'+'/'−' for next/pre section. Box values are auto-saved, like a bookmark.</li>
-      </ul>
+      <p class="note remark" style="margin-top:.9rem"><span class="dot">&bull;</span>Choose a box. You may edit it to any book, ch or verse. Press TTS to hear/read. <span class="dot">&bull;</span>Use '+' for next section. <span class="dot">&bull;</span>Box values are auto-saved, like a bookmark.</p>
     </div>
     <div class="section">
       <div class="section-head">
