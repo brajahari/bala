@@ -143,9 +143,12 @@ input[type=url]:focus-visible{outline:2px solid var(--live);outline-offset:2px}
 /* the main action in each card (TTS / Play / Stop): solid blue, white text, so it stands out from the tinted tool buttons */
 .section-head .primary{background:#1E7EB0; border-color:#1E7EB0; color:#fff}
 .section-head .primary:hover{background:#176591; border-color:#176591}
-.refresh-row{display:flex; justify-content:center; margin-top:1.5rem}
+.foot{display:flex; justify-content:flex-start; align-items:center; gap:.7rem; flex-wrap:wrap; margin-top:1.5rem}
 #refreshBtn{min-width:2.6rem; font-size:1rem; font-weight:700; opacity:.7}
 #refreshBtn:hover{opacity:1}
+.contact{margin:0; text-align:left; font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.75rem; color:var(--teal)}
+.contact a{color:inherit; text-decoration:none; border-bottom:1px solid var(--rule)}
+.contact a:hover{color:var(--fg)}
 #status{margin:0 0 1rem}
 #status:empty{display:none}
 #readHint{margin:1.5rem 0 0}
@@ -242,7 +245,9 @@ body.idle .s.cursor{background:var(--panel)}
       <textarea id="input" class="hidden" placeholder="Write/Paste here&#8230;" spellcheck="false"></textarea>
     </div>
 
-    <div class="refresh-row"><button id="refreshBtn" title="Reload the page" aria-label="Reload the page">&#8635;</button></div>
+
+
+    <div class="foot"><button id="refreshBtn" title="Reload the page" aria-label="Reload the page">&#8635;</button><p class="contact">Contact: <a href="mailto:brajahari@gmail.com">brajahari@gmail.com</a> | <a href="https://wa.me/6597626327" target="_blank" rel="noopener">wa.me/6597626327</a></p></div>
   </section>
 
   <p class="hint-text" id="readHint">Tap any text, any time, to change the read-position.</p>
