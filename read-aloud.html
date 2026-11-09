@@ -830,14 +830,23 @@ seek.addEventListener("change", function(){
   if (playing) speak(idx);
 });
 
+/* Changing speed/voice mid-sentence: stop, give the engine a moment to settle, then
+   re-read this sentence. Desktop Chrome can drop an utterance queued the instant after cancel(). */
+function restartSoon(){
+  if (!playing) return;
+  gen++;                                  // disown the utterance being cancelled
+  synth.cancel();
+  var mine = gen;
+  setTimeout(function(){ if (playing && mine === gen) speak(idx); }, 200);
+}
 rate.addEventListener("change", function(){
   remember("rate", rate.value);
-  if (playing) speak(idx);
+  restartSoon();
 });
 voiceSel.addEventListener("change", function(){
   var v = voices[Number(voiceSel.value)];
   if (v) remember("voice", v.name);
-  if (playing) speak(idx);
+  restartSoon();
 });
 themeBtn.addEventListener("click", function(){
   var now = document.documentElement.getAttribute("data-theme")==="day" ? "night" : "day";
