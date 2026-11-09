@@ -60,6 +60,7 @@ button:focus-visible,select:focus-visible,textarea:focus-visible,.s:focus-visibl
 .section-head .primary{display:inline-flex; align-items:center; justify-content:center; gap:.4rem}
 .icon-tts{width:1rem;height:1rem;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
 #edit,#theme{width:2.6rem}
+#theme{margin-left:auto}
 #play{width:4.4rem; gap:.3rem; font-size:.75rem}
 /* same solid blue as the TTS / Play buttons in the cards */
 #play{background:#1E7EB0; border-color:#1E7EB0; color:#fff}
@@ -193,7 +194,7 @@ body.idle .s.cursor{background:var(--panel)}
       <button id="edit" title="Back" aria-label="Back"><svg class="icon-back" viewBox="0 0 24 24" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg></button>
       <button id="play" title="Read" aria-label="Read"><svg class="icon-tts" viewBox="0 0 24 24" aria-hidden="true"><polygon points="7 4 20 12 7 20 7 4" fill="currentColor"></polygon></svg>READ</button>
       <select id="voice" aria-label="Voice"></select>
-      <button id="theme" title="Light or dark" aria-label="Light or dark"><svg class="icon-tts" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><line x1="12" y1="2" x2="12" y2="4"></line><line x1="12" y1="20" x2="12" y2="22"></line><line x1="2" y1="12" x2="4" y2="12"></line><line x1="20" y1="12" x2="22" y2="12"></line><line x1="4.9" y1="4.9" x2="6.3" y2="6.3"></line><line x1="17.7" y1="17.7" x2="19.1" y2="19.1"></line><line x1="4.9" y1="19.1" x2="6.3" y2="17.7"></line><line x1="17.7" y1="6.3" x2="19.1" y2="4.9"></line></svg></button>
+      <button id="theme" title="Light or dark" aria-label="Light or dark"><svg class="icon-tts" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"></path></svg></button>
     </div>
     <div class="row3">
       <select id="rate" aria-label="Speed">
@@ -844,12 +845,9 @@ themeBtn.addEventListener("click", function(){
   remember("theme", now);
   setThemeIcon();
 });
-/* shows what a tap will switch to: sun while dark, moon while light */
-var ICON_SUN = '<svg class="icon-tts" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><line x1="12" y1="2" x2="12" y2="4"></line><line x1="12" y1="20" x2="12" y2="22"></line><line x1="2" y1="12" x2="4" y2="12"></line><line x1="20" y1="12" x2="22" y2="12"></line><line x1="4.9" y1="4.9" x2="6.3" y2="6.3"></line><line x1="17.7" y1="17.7" x2="19.1" y2="19.1"></line><line x1="4.9" y1="19.1" x2="6.3" y2="17.7"></line><line x1="17.7" y1="6.3" x2="19.1" y2="4.9"></line></svg>';
-var ICON_MOON = '<svg class="icon-tts" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>';
+/* half-filled circle = light/dark; only the tooltip follows the mode */
 function setThemeIcon(){
   var day = document.documentElement.getAttribute("data-theme")==="day";
-  themeBtn.innerHTML = day ? ICON_MOON : ICON_SUN;
   themeBtn.title = day ? "Switch to dark" : "Switch to light";
 }
 
