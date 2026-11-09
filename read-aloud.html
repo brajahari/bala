@@ -133,6 +133,9 @@ input[type=url]:focus-visible{outline:2px solid var(--live);outline-offset:2px}
 /* the main action in each card (TTS / Play / Stop): solid blue, white text, so it stands out from the tinted tool buttons */
 .section-head .primary{background:#1E7EB0; border-color:#1E7EB0; color:#fff}
 .section-head .primary:hover{background:#176591; border-color:#176591}
+.refresh-row{display:flex; justify-content:center; margin-top:1.5rem}
+#refreshBtn{min-width:2.6rem; font-size:1rem; font-weight:700; opacity:.7}
+#refreshBtn:hover{opacity:1}
 #status{margin:0 0 1rem}
 #status:empty{display:none}
 .hint-text{font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.85rem; color:#F59E0B; opacity:1}
@@ -250,6 +253,8 @@ body.idle .s.cursor{background:var(--panel)}
              placeholder="https://website-here.com/page  (or a Google Doc link)">
       <textarea id="input" class="hidden" placeholder="Write/Paste here&#8230;" spellcheck="false"></textarea>
     </div>
+
+    <div class="refresh-row"><button id="refreshBtn" title="Reload the page" aria-label="Reload the page">&#8635;</button></div>
   </section>
 
   <article id="text"></article>
@@ -840,6 +845,8 @@ function setThemeIcon(){
   themeBtn.innerHTML = day ? ICON_MOON : ICON_SUN;
   themeBtn.title = day ? "Switch to dark" : "Switch to light";
 }
+
+$("refreshBtn").addEventListener("click", function(){ location.reload(); });
 
 /* back to the front page — the reading view goes away entirely */
 function toPaste(){
