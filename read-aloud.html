@@ -60,6 +60,9 @@ button:focus-visible,select:focus-visible,textarea:focus-visible,.s:focus-visibl
 .section-head .primary{display:inline-flex; align-items:center; justify-content:center; gap:.4rem}
 .icon-tts{width:1rem;height:1rem;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
 #play{width:3.75rem; gap:.25rem; font-size:.7rem}
+/* same solid blue as the TTS / Play buttons in the cards */
+#play{background:#1E7EB0; border-color:#1E7EB0; color:#fff}
+#play:hover{background:#176591; border-color:#176591}
 #play .icon-tts{width:.85rem; height:.85rem}
 /* first toolbar row never wraps: the voice dropdown shrinks to fit instead */
 .bar .row1{flex-wrap:nowrap}
@@ -72,6 +75,7 @@ input[type=range]{accent-color:var(--teal)}
 #seek{flex:1 1 auto;cursor:pointer}
 .count{font-family:"IBM Plex Mono",monospace;font-size:.72rem;color:var(--teal)}
 .row-hint{display:flex;justify-content:flex-start}
+body:not(.idle) .row-hint{display:none}   /* hidden while reading, shown when paused */
 
 /* paste view */
 #pasteView{padding-top:.5rem; clear:both}
@@ -200,7 +204,7 @@ body.idle .s.cursor{background:var(--panel)}
       <span class="count" id="count"></span>
     </div>
     <div class="row-hint">
-      <span class="hint-text">Click anywhere to change the read-position.</span>
+      <span class="hint-text">Tap anywhere to change the read-position.</span>
     </div>
   </div>
 
