@@ -98,7 +98,7 @@ input[type=url]:focus-visible{outline:2px solid var(--live);outline-offset:2px}
 .live-now{margin:0; font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.85rem; font-weight:500; line-height:1.5; color:var(--fg)}
 .note{margin:.5rem 0 0; font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.75rem; line-height:1.5; color:var(--teal)}
 .note:empty{display:none}
-.note.remark{color:#F59E0B}
+.note.remark{color:#B45309; font-size:.8rem}
 .vbnote{margin-top:.9rem; padding-left:1.1rem}
 .vbnote li+li{margin-top:.15rem}
 .vbbox[readonly]{
@@ -199,10 +199,10 @@ body.idle .s.cursor{background:var(--panel)}
     <div class="section">
       <div class="section-head">
         <p class="section-title">Vedabase</p>
+        <button id="vbOpen" class="tool" title="Open link in new tab" aria-label="Open link in new tab">↗</button>
         <button id="vbDec" class="tool" title="Decrease last number by 1" aria-label="Previous">−</button>
         <button id="vbInc" class="tool" title="Increase last number by 1" aria-label="Next">+</button>
-        <button id="vbOpen" class="tool" title="Open link in new tab" aria-label="Open link in new tab">↗</button>
-        <button id="vbFetch" class="highlight primary"><svg class="icon-tts" viewBox="0 0 24 24" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M19 5a10 10 0 0 1 0 14"></path></svg>TTS</button>
+        <button id="vbFetch" class="highlight primary"><svg class="icon-tts" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 4h6a4 4 0 0 1 4 4v12a3 3 0 0 0-3-3H2z"></path><path d="M22 4h-6a4 4 0 0 0-4 4v12a3 3 0 0 1 3-3h7z"></path></svg><svg class="icon-tts" viewBox="0 0 24 24" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M19 5a10 10 0 0 1 0 14"></path></svg>TTS</button>
       </div>
       <div class="vbgrid" id="vbGrid">
         <label><input type="radio" name="vbPick" checked><input type="text" class="vbbox" value="bg/1" spellcheck="false" autocomplete="off"></label>
@@ -215,9 +215,8 @@ body.idle .s.cursor{background:var(--panel)}
         <label class="vbsp"><input type="radio" name="vbPick" id="vbSpRadio"><input type="text" class="vbbox" value="Daily SP lecture" readonly></label>
       </div>
       <ul class="note remark vbnote">
-        <li>Choose a box, edit it to any book, ch or verse, then press TTS.</li>
-        <li>'+'/'−' for next/pre section.</li>
-        <li>Box values are saved, to pick up where you left off.</li>
+        <li>Choose a box. You may edit it (any book, ch or verse). Press TTS to hear/read.</li>
+        <li>'+'/'−' for next/pre section. Box values are auto-saved, like a bookmark.</li>
       </ul>
     </div>
     <div class="section">
@@ -238,7 +237,7 @@ body.idle .s.cursor{background:var(--panel)}
       <div class="section-head">
         <p class="section-title">Any link or text</p>
         <button id="openLink" class="tool" title="Open link in new tab" aria-label="Open link in new tab">↗</button>
-        <button id="load" class="highlight primary"><svg class="icon-tts" viewBox="0 0 24 24" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M19 5a10 10 0 0 1 0 14"></path></svg>TTS</button>
+        <button id="load" class="highlight primary"><svg class="icon-tts" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 4h6a4 4 0 0 1 4 4v12a3 3 0 0 0-3-3H2z"></path><path d="M22 4h-6a4 4 0 0 0-4 4v12a3 3 0 0 1 3-3h7z"></path></svg><svg class="icon-tts" viewBox="0 0 24 24" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M19 5a10 10 0 0 1 0 14"></path></svg>TTS</button>
       </div>
       <div class="modes" role="radiogroup" aria-label="Source">
         <label><input type="radio" name="srcMode" value="link" checked> Link</label>
