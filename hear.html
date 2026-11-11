@@ -892,7 +892,7 @@ function savePosition(){
   var pct = Math.floor(idx / sentences.length * 100);          // round down to a whole percent
   var base = splitPct(box.value).text;                          // drop any older percentage
   box.value = pct > 0 ? base + " " + pct + "%" : base;          // 0% → nothing appended
-  if (box.readOnly) remember("vbsp", JSON.stringify({ v:box.value, d:new Date().toDateString() }));
+  if (box.readOnly) remember("vbsp", JSON.stringify({ pct:pct, sig:textSig() }));
   else if (typeof vbSave === "function") vbSave();
   if (box === docUrl) remember("doc", box.value);
 }
@@ -913,13 +913,21 @@ function present(t, pct){
   document.body.classList.remove("landing");
   render();
   window.scrollTo({ top:0 });
-  /* "bg/10 35%": open 35% of the way through, rounded down to a sentence */
-  if (typeof pct === "number" && pct > 0){
-    idx = Math.min(sentences.length-1, Math.floor(pct / 100 * sentences.length));
-    mark();
-    scrollTo(idx, true);
-  }
+  jumpPct(pct);
   return true;
+}
+/* "bg/10 35%": move to 35% of the way through, rounded down to a sentence */
+function jumpPct(pct){
+  if (typeof pct !== "number" || !(pct > 0) || !sentences.length) return;
+  idx = Math.min(sentences.length-1, Math.floor(pct / 100 * sentences.length));
+  mark();
+  scrollTo(idx, true);
+}
+/* A fingerprint of the loaded text: the sentence count plus the opening lines.
+   Used to tell whether Daily SP is still the same lecture as when its % was saved. */
+function textSig(){
+  var head = sentences.slice(0, 3).map(function(x){ return x.text; }).join(" ");
+  return sentences.length + ":" + head.replace(/\s+/g, " ").slice(0, 300);
 }
 
 /* "something 35%" → { text:"something", pct:35 }; without a trailing percentage pct is null */
@@ -1007,9 +1015,8 @@ function vbSave(){
 (function spRestore(){
   var sp = vbGrid.querySelector(".vbbox[readonly]"), saved;
   try { saved = JSON.parse(recall("vbsp")); } catch(e){}
-  if (!sp || !saved || saved.d !== new Date().toDateString() || !saved.v) return;
-  var pct = splitPct(saved.v).pct;                 // keep the % but use the current label
-  if (pct) sp.value = sp.value + " " + pct + "%";
+  if (!sp || !saved || !(saved.pct > 0)) return;
+  sp.value = splitPct(sp.value).text + " " + saved.pct + "%";   // checked against the lecture when TTS is pressed
 })();
 vbGrid.addEventListener("input", vbSave);
 vbGrid.addEventListener("change", vbSave);
@@ -1023,6 +1030,19 @@ $("vbFetch").addEventListener("click", function(){
   if (!url) return;
   var b = vbBox(), pct = b ? splitPct(b.value).pct : null;
   lastSource = b || null;
+  if (b && b.readOnly){
+    fetchDoc(url, function(t){
+      if (!present(t)) return;
+      var saved = null;
+      try { saved = JSON.parse(recall("vbsp")); } catch(e){}
+      if (saved && saved.sig === textSig()) jumpPct(saved.pct);   // same lecture: carry on
+      else {                                                        // a new day's lecture: from the top
+        b.value = splitPct(b.value).text;
+        remember("vbsp", "");
+      }
+    }, null, true);
+    return;
+  }
   fetchDoc(url, function(t){ return present(t, pct); }, null, true);
 });
 function vbStep(delta){
