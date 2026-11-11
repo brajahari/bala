@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vedabase Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gentium+Book+Plus:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* same look as the main page of hear.html */
+:root{
+  --bg:#FFFEF8; --fg:#212529; --teal:#6C757D; --rule:#DEE2E6;
+  --blue:#1E7EB0; --amber:#B45309;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--bg); color:var(--fg);
+  font-family:"Gentium Book Plus",Georgia,"Times New Roman",serif;
+  font-size:19px; line-height:1.65; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:40rem; margin:0 auto; padding:0 1.25rem 3rem}
+/* title and Back stay at the top while scrolling */
+.head{
+  position:sticky; top:0; z-index:10; background:var(--bg);
+  border-bottom:1px solid var(--rule);
+  margin:0 -1.25rem 1rem; padding:.9rem 1.25rem .8rem;
+}
+h1{font-size:1.5rem; margin:0 0 .5rem; line-height:1.3}
+.sub{margin:0 0 1.4rem; font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.75rem; color:var(--teal)}
+h2{font-size:1.05rem; margin:1.6rem 0 .4rem}
+p,li{margin:.35rem 0}
+ul{padding-left:1.2rem; margin:.3rem 0}
+code,kbd{
+  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.8em;
+  background:rgba(245,158,11,.12); color:var(--amber);
+  border:1px solid rgba(245,158,11,.45); border-radius:3px; padding:.05em .35em; white-space:nowrap;
+}
+kbd{color:var(--blue); background:rgba(30,126,176,.08); border-color:rgba(30,126,176,.45); font-weight:700}
+.warn{color:#C2410C; font-weight:700}
+.note{font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.78rem; color:var(--amber)}
+table{border-collapse:collapse; margin:.4rem 0; font-size:.95rem}
+td{padding:.2rem .9rem .2rem 0; vertical-align:top}
+
+.back{
+  display:inline-flex; align-items:center; justify-content:center;
+  gap:.45rem; height:2.15rem; padding:0 .9rem; border-radius:2px;
+  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.78rem; font-weight:500; text-decoration:none;
+  background:var(--fg); color:var(--bg); border:1px solid var(--fg);
+}
+.back svg{width:1.1rem; height:1.1rem; fill:none; stroke:currentColor; stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="head">
+<h1>Vedabase: how to use</h1>
+<a class="back" href="hear.html" title="Back to main page"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>Back to main page</a>
+</header>
+
+
+<h2>1. TTS</h2>
+<ul>
+  <li>Choose a box.</li>
+  <li>You may edit it to any book, chapter or verse (Vedabase format, e.g. <code>bg/2/13</code>).</li>
+  <li>Press <kbd>TTS</kbd> to hear/read.</li>
+</ul>
+
+<h2>2. Bookmarks</h2>
+<ul>
+  <li>Box values are auto-saved, including your % position within the page (e.g. <code>bg/10 35%</code>).</li>
+</ul>
+
+<h2>3. <kbd>+</kbd> and <kbd>−</kbd></h2>
+<ul>
+  <li>They change the last number in the box, so <code>bg/2/13</code> becomes <code>bg/2/14</code>.</li>
+  <li>Edit the box by hand for <span class="warn">pages that don't exist</span>, e.g.
+    <ul>
+      <li><code>bg/12/6</code> &rarr; <code>bg/12/6-7</code></li>
+      <li><code>bg/12/21</code> &rarr; <code>bg/13/1</code></li>
+    </ul>
+  </li>
+</ul>
+
+<h2>4. <kbd>↗</kbd></h2>
+<ul>
+  <li>Opens the page on vedabase.io instead.</li>
+</ul>
+
+
+</div>
+<script>
+/* came from hear.html: step back, so the page is exactly as it was; otherwise just open it */
+document.querySelectorAll(".back").forEach(function(a){
+  a.addEventListener("click", function(e){
+    if (document.referrer && /hear\.html/.test(document.referrer) && history.length > 1){
+      e.preventDefault();
+      history.back();
+    }
+  });
+});
+</script>
+</body>
+</html>
