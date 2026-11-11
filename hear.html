@@ -200,20 +200,6 @@ body.idle .s.cursor{background:var(--panel)}
     <p class="status" id="status" role="status" aria-live="polite"></p>
     <div class="section">
       <div class="section-head">
-        <p class="section-title">SP Live</p>
-        <button id="livePlay" class="highlight primary"><svg class="icon-tts" viewBox="0 0 24 24" aria-hidden="true"><polygon points="7 4 20 12 7 20 7 4"></polygon></svg>Play</button>
-        <button id="liveStop" style="display:none" class="highlight primary"><svg class="icon-tts" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1"></rect></svg>Stop</button>
-      </div>
-      <p class="live-now" id="liveNowPlaying"></p>
-      <p class="note" id="liveNext"></p>
-      <p class="note remark"><em>You may lock the phone while listening.</em></p>
-      <audio id="liveAudio">
-        <source src="https://prabhupada.prabhupadaradio.com/radio.mp3" type="audio/mpeg">
-      </audio>
-    </div>
-
-    <div class="section">
-      <div class="section-head">
         <p class="section-title">Vedabase</p>
         <button id="vbOpen" class="tool" title="Open link in new tab" aria-label="Open link in new tab">↗</button>
         <button id="vbDec" class="tool" title="Decrease last number by 1" aria-label="Previous">−</button>
@@ -234,6 +220,20 @@ body.idle .s.cursor{background:var(--panel)}
       </div>
       <p class="guide-link"><a href="guide.html">&#9432; Guide: how to use this section</a></p>
     </div>
+    <div class="section">
+      <div class="section-head">
+        <p class="section-title">SP Live</p>
+        <button id="livePlay" class="highlight primary"><svg class="icon-tts" viewBox="0 0 24 24" aria-hidden="true"><polygon points="7 4 20 12 7 20 7 4"></polygon></svg>Play</button>
+        <button id="liveStop" style="display:none" class="highlight primary"><svg class="icon-tts" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1"></rect></svg>Stop</button>
+      </div>
+      <p class="live-now" id="liveNowPlaying"></p>
+      <p class="note" id="liveNext"></p>
+      <p class="note remark"><em>You may lock the phone while listening.</em></p>
+      <audio id="liveAudio">
+        <source src="https://prabhupada.prabhupadaradio.com/radio.mp3" type="audio/mpeg">
+      </audio>
+    </div>
+
     <div class="section">
       <div class="section-head">
         <p class="section-title">Any link or text</p>
