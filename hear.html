@@ -208,7 +208,6 @@ body.idle .s.cursor{background:var(--panel)}
       </div>
       <div class="vbgrid" id="vbGrid">
         <label><input type="radio" name="vbPick" checked><input type="text" class="vbbox" value="bg/1" spellcheck="false" autocomplete="off"></label>
-        <label><input type="radio" name="vbPick"><input type="text" class="vbbox" value="sb/1/1" spellcheck="false" autocomplete="off"></label>
         <label><input type="radio" name="vbPick"><input type="text" class="vbbox" value="bg/1/1" spellcheck="false" autocomplete="off"></label>
         <label><input type="radio" name="vbPick"><input type="text" class="vbbox" value="sb/1/1/1" spellcheck="false" autocomplete="off"></label>
         <label><input type="radio" name="vbPick"><input type="text" class="vbbox" value="cc/adi/1" spellcheck="false" autocomplete="off"></label>
@@ -216,7 +215,8 @@ body.idle .s.cursor{background:var(--panel)}
         <label><input type="radio" name="vbPick"><input type="text" class="vbbox" value="" spellcheck="false" autocomplete="off"></label>
         <label><input type="radio" name="vbPick"><input type="text" class="vbbox" value="" spellcheck="false" autocomplete="off"></label>
         <label><input type="radio" name="vbPick"><input type="text" class="vbbox" value="" spellcheck="false" autocomplete="off"></label>
-        <label class="vbsp"><input type="radio" name="vbPick" id="vbSpRadio"><input type="text" class="vbbox" value="Daily SP lecture" readonly></label>
+        <label><input type="radio" name="vbPick"><input type="text" class="vbbox" value="" spellcheck="false" autocomplete="off"></label>
+        <label class="vbsp"><input type="radio" name="vbPick" id="vbSpRadio"><input type="text" class="vbbox" value="Daily SP" readonly></label>
       </div>
       <p class="guide-link"><a href="guide.html">&#9432; Guide: how to use this section</a></p>
     </div>
@@ -1005,7 +1005,9 @@ function vbSave(){
 (function spRestore(){
   var sp = vbGrid.querySelector(".vbbox[readonly]"), saved;
   try { saved = JSON.parse(recall("vbsp")); } catch(e){}
-  if (sp && saved && saved.d === new Date().toDateString() && saved.v) sp.value = saved.v;
+  if (!sp || !saved || saved.d !== new Date().toDateString() || !saved.v) return;
+  var pct = splitPct(saved.v).pct;                 // keep the % but use the current label
+  if (pct) sp.value = sp.value + " " + pct + "%";
 })();
 vbGrid.addEventListener("input", vbSave);
 vbGrid.addEventListener("change", vbSave);
