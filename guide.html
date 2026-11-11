@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Gentium+Book+Plus:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-/* same look as the main page of hear.html */
+/* same look as the main page of hearing.html */
 :root{
   --bg:#FFFEF8; --fg:#212529; --teal:#6C757D; --rule:#DEE2E6;
   --blue:#1E7EB0; --amber:#B45309;
@@ -60,7 +60,7 @@ td{padding:.2rem .9rem .2rem 0; vertical-align:top}
 
 <header class="head">
 <h1>Vedabase: how to use</h1>
-<a class="back" href="hear.html" title="Back to main page"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>Back to main page</a>
+<a class="back" href="hearing.html" title="Back to main page"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>Back to main page</a>
 </header>
 
 
@@ -91,10 +91,10 @@ td{padding:.2rem .9rem .2rem 0; vertical-align:top}
 
 </div>
 <script>
-/* came from hear.html: step back, so the page is exactly as it was; otherwise just open it */
+/* came from hearing.html: step back, so the page is exactly as it was; otherwise just open it */
 document.querySelectorAll(".back").forEach(function(a){
   a.addEventListener("click", function(e){
-    if (document.referrer && /hear\.html/.test(document.referrer) && history.length > 1){
+    if (document.referrer && /hearing\.html/.test(document.referrer) && history.length > 1){
       e.preventDefault();
       history.back();
     }
