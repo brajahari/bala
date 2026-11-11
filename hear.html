@@ -230,7 +230,7 @@ body.idle .s.cursor{background:var(--panel)}
       </div>
       <p class="live-now" id="liveNowPlaying"></p>
       <p class="note" id="liveNext"></p>
-      <p class="note remark"><em>You may lock the phone while listening.</em></p>
+      <p class="note remark">You may lock the phone while listening.</p>
       <audio id="liveAudio">
         <source src="https://prabhupada.prabhupadaradio.com/radio.mp3" type="audio/mpeg">
       </audio>
@@ -256,7 +256,7 @@ body.idle .s.cursor{background:var(--panel)}
     <div class="foot"><p class="contact">Feedback: <a href="mailto:brajahari@gmail.com">brajahari@gmail.com</a> | <a href="https://wa.me/6597626327" target="_blank" rel="noopener">wa.me/6597626327</a></p><button id="refreshBtn" title="Reload the page" aria-label="Reload the page">&#8635;</button></div>
   </section>
 
-  <p class="hint-text" id="readHint">Tap any text, any time, to change the read-position.<br>Back saves your place as a % in the box.</p>
+  <p class="hint-text" id="readHint">Tap any text, any time, to change the read-position.<br>Change the speed, voice or theme &#9680; from the bar below.<br>The &larr; button saves your place as a % in the box.</p>
   <article id="text"></article>
 
   <div class="bar hidden" id="bar">
@@ -889,8 +889,8 @@ var lastSource = null;
 function savePosition(){
   var box = lastSource;
   if (!box || !sentences.length) return;
-  var pct = Math.floor(idx / sentences.length * 100);          // round down to a whole percent
-  var base = splitPct(box.value).text;                          // drop any older percentage
+  var pct = Math.floor(idx / sentences.length * 1000) / 10;    // 1 decimal place, rounded down (35.27 → 35.2)
+  var base = (box.readOnly ? splitPct : splitPath)(box.value).text;   // drop any older percentage
   box.value = pct > 0 ? base + " " + pct + "%" : base;          // 0% → nothing appended
   if (box.readOnly) remember("vbsp", JSON.stringify({ pct:pct, sig:textSig() }));
   else if (typeof vbSave === "function") vbSave();
@@ -919,7 +919,7 @@ function present(t, pct){
 /* "bg/10 35%": move to 35% of the way through, rounded down to a sentence */
 function jumpPct(pct){
   if (typeof pct !== "number" || !(pct > 0) || !sentences.length) return;
-  idx = Math.min(sentences.length-1, Math.floor(pct / 100 * sentences.length));
+  idx = Math.min(sentences.length-1, Math.floor(pct / 100 * sentences.length + 1e-9));   // tiny nudge: 35.2% of 1000 must be 352, not 351.99…
   mark();
   scrollTo(idx, true);
 }
@@ -930,11 +930,34 @@ function textSig(){
   return sentences.length + ":" + head.replace(/\s+/g, " ").slice(0, 300);
 }
 
-/* "something 35%" → { text:"something", pct:35 }; without a trailing percentage pct is null */
+/* "something 35%" → { text:"something", pct:35 }.
+   A trailing "<word>%" is always peeled off the text. If it isn't a number from 0 to 100 it is
+   ignored (pct stays null), so reading simply starts at the beginning. */
 function splitPct(str){
-  var m = String(str).trim().match(/^(.*?)\s*(\d+(?:\.\d+)?)\s*%$/);
-  if (!m || !m[1]) return { text:String(str).trim(), pct:null };
-  return { text:m[1].trim(), pct:Math.min(100, Number(m[2])) };
+  str = String(str).trim();
+  var m = str.match(/^(.*?)\s+([^\s%]*)\s*%$/);
+  if (!m || !m[1]) return { text:str, pct:null };
+  var tok = m[2], ok = /^\d+(?:\.\d+)?$/.test(tok) && Number(tok) <= 100;
+  return { text:m[1].trim(), pct: ok ? Number(tok) : null };
+}
+/* Addresses and Vedabase paths never contain a space, so the first word is the address and anything
+   after it is the position: "bg/10 35%" or "bg/10 35" → 35. Anything else ("bg/1 w", "150%") is ignored
+   and reading starts at the beginning. */
+function splitPath(str){
+  var m = String(str).trim().match(/^(\S+)(?:\s+(.*))?$/);
+  if (!m) return { text:"", pct:null };
+  var tok = (m[2] || "").replace(/\s*%\s*$/, "").trim();
+  var ok = /^\d+(?:\.\d+)?$/.test(tok) && Number(tok) <= 100;
+  return { text:m[1], pct: ok ? Number(tok) : null };
+}
+/* "bg/10 35" (a number after a space, no %) → "bg/10 35%": add the missing sign to the box.
+   "bg/2/13" has no space, so a verse number is never mistaken for a percentage. */
+function addPctSign(box){
+  if (!box || box.readOnly) return;
+  var m = box.value.trim().match(/^(.*\S)\s+(\d+(?:\.\d+)?)$/);
+  if (!m) return;
+  box.value = m[1] + " " + m[2] + "%";
+  if (box !== docUrl && typeof vbSave === "function") vbSave();
 }
 
 /* ─── "Any link or text": one box at a time, picked by the Link / Free text radios ─── */
@@ -958,7 +981,8 @@ document.querySelectorAll("input[name=srcMode]").forEach(function(r){
 
 loadBtn.addEventListener("click", function(){
   if (srcMode() === "link"){
-    var sp = splitPct(docUrl.value);
+    addPctSign(docUrl);
+    var sp = splitPath(docUrl.value);
     if (sp.text){ lastSource = docUrl; fetchDoc(sp.text, function(t){ return present(t, sp.pct); }); }
     else docUrl.focus();
     return;
@@ -968,7 +992,7 @@ loadBtn.addEventListener("click", function(){
   if (!t || !present(t)) input.focus();
 });
 openLinkBtn.addEventListener("click", function(){
-  var url = docUrl.value.trim();
+  var url = splitPath(docUrl.value).text;
   if (url) window.open(url, "_blank");
 });
 function bumpLast(s, delta){
@@ -990,7 +1014,8 @@ function vbUrl(){
   var b = vbBox();
   if (!b) return "";
   if (b.readOnly) return SP_LECTURE_DOC;
-  var path = splitPct(b.value).text.replace(/^\/+/, "");
+  addPctSign(b);
+  var path = splitPath(b.value).text.replace(/^\/+/, "");
   return path ? VEDABASE + path : "";
 }
 /* Box contents and the chosen box persist on this device, so reading carries on next visit. */
@@ -1028,7 +1053,7 @@ vbGrid.addEventListener("focusin", function(e){
 $("vbFetch").addEventListener("click", function(){
   var url = vbUrl();
   if (!url) return;
-  var b = vbBox(), pct = b ? splitPct(b.value).pct : null;
+  var b = vbBox(), pct = (b && !b.readOnly) ? splitPath(b.value).pct : null;
   lastSource = b || null;
   if (b && b.readOnly){
     fetchDoc(url, function(t){
@@ -1048,7 +1073,7 @@ $("vbFetch").addEventListener("click", function(){
 function vbStep(delta){
   var b = vbBox();
   if (!b || b.readOnly) return;
-  b.value = bumpLast(splitPct(b.value).text, delta);
+  b.value = bumpLast(splitPath(b.value).text, delta);
   vbSave();
 }
 $("vbInc").addEventListener("click", function(){ vbStep(1); });
