@@ -8,12 +8,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Gentium+Book+Plus:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#15171F; --fg:#DDD7CA; --live:#E3A73B; --teal:#5C8A81;
+  --bg:#15171F; --fg:#DDD7CA; --live:#E3A73B; --teal:#5C8A81; --hl-rgb:227,167,59;
   --accent:#6EC1E4; --accent-rgb:110,193,228;
   --rule:rgba(221,215,202,.16); --panel:rgba(221,215,202,.05); --dim:.36;
 }
 html[data-theme="day"]{
-  --bg:#E9E7DF; --fg:#23252E; --live:#9C6408; --teal:#35635A;
+  --bg:#E9E7DF; --fg:#23252E; --live:#9C6408; --teal:#35635A; --hl-rgb:156,100,8;
   --accent:#1E7EB0; --accent-rgb:30,126,176;
   --rule:rgba(35,37,46,.16); --panel:rgba(35,37,46,.04); --dim:.4;
 }
@@ -138,7 +138,12 @@ input[type=url]:focus-visible{outline:2px solid var(--live);outline-offset:2px}
 /* card header: title on the left, that card's buttons on the right, primary action last */
 .section-head{display:flex; align-items:center; gap:.45rem; margin-bottom:.9rem}
 .section-head .section-title{margin:0; margin-right:auto}
-.section-head button{min-width:2.4rem; font-weight:700}
+/* every button in a card header is the same height, whether it holds a symbol, an icon or a word */
+.section-head button{
+  min-width:2.4rem; font-weight:700;
+  height:2.4rem; box-sizing:border-box; padding-top:0; padding-bottom:0;
+  display:inline-flex; align-items:center; justify-content:center; line-height:1;
+}
 .section-head .tool{color:#1E7EB0; background:rgba(30,126,176,.08); border-color:rgba(30,126,176,.45)}
 .section-head .tool:hover{background:rgba(30,126,176,.16); border-color:#1E7EB0}
 .section-head .primary{min-width:4.2rem}
@@ -148,16 +153,19 @@ input[type=url]:focus-visible{outline:2px solid var(--live);outline-offset:2px}
 .pair .sep{font-weight:400; opacity:.85; line-height:1}
 .section-head .primary:hover{background:#176591; border-color:#176591}
 .foot{display:flex; justify-content:flex-start; align-items:center; gap:.7rem; flex-wrap:wrap; margin-top:1.5rem}
-#refreshBtn{min-width:2.6rem; font-size:1rem; font-weight:700; opacity:.7}
-#refreshBtn:hover{opacity:1}
+#refreshBtn{font-size:1rem}
 .contact{margin:0; text-align:left; font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.75rem; color:var(--teal)}
 .contact a{color:inherit; text-decoration:none; border-bottom:1px solid var(--rule)}
 .contact a:hover{color:var(--fg)}
 #status{margin:0 0 1rem}
 #status:empty{display:none}
-#readHint{margin:1.5rem 0 0}
+/* same highlighter look as the current sentence: amber tint, normal text colour, amber bar */
+#readHint{
+  margin:1.5rem 0 0; padding:.7rem .9rem; border-radius:4px;
+  background:rgba(var(--hl-rgb),.2); border-left:3px solid var(--live); color:var(--fg);
+}
 body.landing #readHint{display:none}
-.hint-text{font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.85rem; color:#F59E0B; opacity:1}
+.hint-text{font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.82rem; line-height:1.65; opacity:1}
 .section{
   padding:1rem; border:1px solid var(--rule); border-radius:3px;
   background:var(--panel); margin-bottom:1.5rem;
@@ -176,16 +184,15 @@ body.landing .section{
 body.idle .s{opacity:1}
 .s.done{opacity:calc(var(--dim) + .2)}
 
-/* the cursor — where reading is, or where it will start */
+/* the cursor — where reading is, or where it will start: one look for reading and tapping.
+   A highlighter-style fill keeps the text in its normal colour, so it reads clearly on both
+   themes (the fill is a tint of amber that follows the theme), plus an amber bar on the left. */
 .s.cursor{
   opacity:1;
-  box-shadow:-.7rem 0 0 -.62rem var(--teal);
-}
-.s.cursor.live{
-  color:var(--live);
+  background:rgba(var(--hl-rgb),.24);
   box-shadow:-.7rem 0 0 -.62rem var(--live);
+  box-decoration-break:clone; -webkit-box-decoration-break:clone;
 }
-body.idle .s.cursor{background:var(--panel)}
 
 .hidden{display:none}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
@@ -225,13 +232,14 @@ body.idle .s.cursor{background:var(--panel)}
     <div class="section">
       <div class="section-head">
         <p class="section-title">SP Live</p>
+        <button id="refreshBtn" class="tool" title="Reload the page" aria-label="Reload the page">&#8635;</button>
         <button id="livePlay" class="highlight primary"><svg class="icon-tts" viewBox="0 0 24 24" aria-hidden="true"><polygon points="7 4 20 12 7 20 7 4"></polygon></svg>Play</button>
         <button id="liveStop" style="display:none" class="highlight primary"><svg class="icon-tts" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1"></rect></svg>Stop</button>
       </div>
       <p class="live-now" id="liveNowPlaying"></p>
       <p class="note" id="liveNext"></p>
       <p class="note remark">You may lock the phone while listening.</p>
-      <audio id="liveAudio">
+      <audio id="liveAudio" preload="none">
         <source src="https://prabhupada.prabhupadaradio.com/radio.mp3" type="audio/mpeg">
       </audio>
     </div>
@@ -253,7 +261,7 @@ body.idle .s.cursor{background:var(--panel)}
 
 
 
-    <div class="foot"><p class="contact">Feedback: <a href="mailto:brajahari@gmail.com">brajahari@gmail.com</a> | <a href="https://wa.me/6597626327" target="_blank" rel="noopener">wa.me/6597626327</a></p><button id="refreshBtn" title="Reload the page" aria-label="Reload the page">&#8635;</button></div>
+    <div class="foot"><p class="contact">Feedback: <a href="mailto:brajahari@gmail.com">brajahari@gmail.com</a> | <a href="https://wa.me/6597626327" target="_blank" rel="noopener">wa.me/6597626327</a></p></div>
   </section>
 
   <p class="hint-text" id="readHint">Tap any text, any time, to change the read-position.<br>Change the speed, voice or theme &#9680; from the bar below.<br>Press &larr; to return to the main page. It auto-saves read-position (as %).</p>
@@ -1086,13 +1094,16 @@ $("vbOpen").addEventListener("click", function(){
 /* ─── SP Live radio stream ─── */
 var liveAudio = $("liveAudio"), livePlayBtn = $("livePlay"), liveStopBtn = $("liveStop");
 livePlayBtn.addEventListener("click", function(){
-  liveAudio.play();
+  liveAudio.load();              // reconnect, so you join the live broadcast now, not old buffered audio
+  var p = liveAudio.play();
+  if (p && p.catch) p.catch(function(){});
+  updateLiveInfo();              // fresh now-playing / next text at the moment you press Play
   livePlayBtn.style.display = "none";
   liveStopBtn.style.display = "inline-flex";
 });
 function stopLive(){
   liveAudio.pause();
-  liveAudio.currentTime = 0;
+  liveAudio.load();              // drop the connection so nothing keeps downloading while stopped
   liveStopBtn.style.display = "none";
   livePlayBtn.style.display = "inline-flex";
 }
