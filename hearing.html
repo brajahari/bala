@@ -157,9 +157,9 @@ input[type=url]:focus-visible{outline:2px solid var(--live);outline-offset:2px}
 .contact{margin:0; text-align:left; font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.75rem; color:var(--teal)}
 .contact a{color:inherit; text-decoration:none; border-bottom:1px solid var(--rule)}
 .contact a:hover{color:var(--fg)}
-/* the notification line is always there, with room for two lines, so messages appearing and
-   disappearing never push the cards up and down */
-#status{margin:0 0 1rem; min-height:2.5rem}
+/* the notification line is always there, with room for one line, so ordinary messages appearing
+   and disappearing never push the cards up and down */
+#status{margin:0 0 .6rem; min-height:1.4rem}
 /* same highlighter look as the current sentence: amber tint, normal text colour, amber bar */
 #readHint{
   margin:1.5rem 0 0; padding:.7rem .9rem; border-radius:4px;
@@ -463,7 +463,7 @@ function untab(t, isDoc){ return isDoc ? t.replace(/^[ \t]*Tab \d+[ \t]*$/gm, ""
 function fetchDoc(url, then, onFail, skipRemember){
   var doc = resolveDoc(url);
   if (!doc){
-    say("That doesn't look like a usable link.", true);
+    say("The page doesn't exist.", true);
     if (onFail) onFail();
     return;
   }
@@ -518,16 +518,8 @@ function fetchDoc(url, then, onFail, skipRemember){
       then(clean);
     })
     .catch(function(e){
-      var m = String(e && e.message);
-      say(
-        m === "private" ? (isDoc
-            ? "That doc isn't shared publicly. Open it → Share → General access → Anyone with the link → Viewer."
-            : "That page needs you to sign in — it can't be read from here.")
-        : m === "no-doc" ? (isDoc ? "No document at that link." : "The page doesn't exist.")
-        : m === "empty"  ? (isDoc ? "The document came back empty." : "The page doesn't exist.")
-        : "Couldn't reach it — check the connection, or paste the text below.",
-        true
-      );
+      /* every failure reads the same: private, missing, empty or unreachable */
+      say("The page doesn't exist.", true);
       if (onFail) onFail();
     })
     .then(function(){
