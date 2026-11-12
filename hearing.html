@@ -179,10 +179,8 @@ body.landing .section{
 /* reading view */
 #text{margin-top:1.2rem;margin-bottom:1.5rem;overflow-x:hidden}
 #text p{margin:0 0 1.4rem;word-break:break-word;overflow-wrap:break-word}
-.s{opacity:var(--dim);transition:opacity .3s ease;cursor:text;border-radius:2px;display:inline;word-break:break-word}
-.s:hover{opacity:.75}
+.s{transition:opacity .3s ease;cursor:text;border-radius:2px;display:inline;word-break:break-word}
 body.idle .s{opacity:1}
-.s.done{opacity:calc(var(--dim) + .2)}
 
 /* the cursor — where reading is, or where it will start: one look for reading and tapping.
    A highlighter-style fill keeps the text in its normal colour, so it reads clearly on both
