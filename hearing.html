@@ -183,13 +183,18 @@ body.landing .section{
 body.idle .s{opacity:1}
 
 /* the cursor — where reading is, or where it will start: one look for reading and tapping.
-   A highlighter-style fill keeps the text in its normal colour, so it reads clearly on both
-   themes (the fill is a tint of amber that follows the theme), plus an amber bar on the left. */
+   Light theme: normal dark text on an amber tint (amber text would be too close to the dark text).
+   Dark theme: amber text on a lighter tint, since the other text is no longer faded.
+   Both: an amber bar on the left. */
 .s.cursor{
   opacity:1;
   background:rgba(var(--hl-rgb),.24);
   box-shadow:-.7rem 0 0 -.62rem var(--live);
   box-decoration-break:clone; -webkit-box-decoration-break:clone;
+}
+html:not([data-theme="day"]) .s.cursor{
+  color:var(--live);
+  background:rgba(var(--hl-rgb),.14);
 }
 
 .hidden{display:none}
@@ -1076,11 +1081,46 @@ $("vbFetch").addEventListener("click", function(){
   }
   fetchDoc(url, function(t){ return present(t, pct); }, null, true);
 });
+/* + / −: follow the page's own next / previous link, so joined verses (6-7) and chapter ends
+   (bg/12/20 → bg/13) are handled. If the lookup fails, fall back to adding / subtracting 1. */
+function neighbourPath(d, delta){
+  function edgeNode(a, last){                       // first / last child that is not blank text
+    var n = last ? a.lastChild : a.firstChild;
+    while (n && n.nodeType === 3 && !n.textContent.trim()) n = last ? n.previousSibling : n.nextSibling;
+    return n;
+  }
+  var scope = d.querySelectorAll('.justify-between a[href^="/en/library/"]');
+  if (!scope.length) scope = d.querySelectorAll('a[href^="/en/library/"]');
+  for (var i=0;i<scope.length;i++){
+    var a = scope[i], href = a.getAttribute("href");
+    if (/advanced-view|default-view/.test(href)) continue;
+    var svg = a.querySelector("svg");
+    if (!svg) continue;
+    var isPrev = edgeNode(a, false) === svg;        // arrow before the text  ←
+    var isNext = edgeNode(a, true) === svg;         // arrow after the text   →
+    if ((delta > 0 && isNext && !isPrev) || (delta < 0 && isPrev && !isNext))
+      return href.replace(/^\/en\/library\//, "").replace(/\/+$/, "");
+  }
+  return "";
+}
+var stepToken = 0;
 function vbStep(delta){
   var b = vbBox();
   if (!b || b.readOnly) return;
-  b.value = bumpLast(splitPath(b.value).text, delta);
-  vbSave();
+  var path = splitPath(b.value).text.replace(/^\/+/, "");
+  if (!path) return;
+  var fallback = bumpLast(path, delta), mine = ++stepToken;
+  function finish(next){
+    if (mine !== stepToken) return;                 // a newer press took over
+    say("");
+    if (splitPath(b.value).text.replace(/^\/+/, "") !== path) return;   // the box was edited meanwhile
+    b.value = next || fallback;
+    vbSave();
+  }
+  say("Looking up the " + (delta > 0 ? "next" : "previous") + " page…");
+  get(READER + VEDABASE + path, { "X-Return-Format":"html" })
+    .then(function(html){ finish(neighbourPath(new DOMParser().parseFromString(html, "text/html"), delta)); })
+    .catch(function(){ finish(""); });
 }
 $("vbInc").addEventListener("click", function(){ vbStep(1); });
 $("vbDec").addEventListener("click", function(){ vbStep(-1); });
