@@ -142,8 +142,16 @@ input[type=url]:focus-visible{outline:2px solid var(--live);outline-offset:2px}
 /* Vedabase and Link cards: the ↗ sits right beside the title; − + and the main button go to the right edge */
 .section-head .section-title.tight{margin-right:0}
 #vbDec, #load{margin-left:auto}
-/* the ↗ beside a title is a small helper, so it is smaller than the working buttons */
-#vbOpen, #openLink{height:1.8rem; min-width:1.8rem; padding-left:0; padding-right:0; font-size:.85rem}
+/* the ↗ beside a title is a plain bold link, with no box around it: a little larger than the
+   text so it reads as an arrow, with an invisible padding that keeps it easy to tap */
+.section-head #vbOpen, .section-head #openLink{
+  height:auto; min-width:0; padding:.35rem .4rem; border:none; background:none; border-radius:0;
+  font-weight:700; line-height:1; color:#1E7EB0;
+  margin-left:-.3rem;
+}
+.section-head #vbOpen{font-size:1.25rem}
+.section-head #openLink{font-size:1.2rem}
+.section-head #vbOpen:hover, .section-head #openLink:hover{background:none; color:#176591}
 /* every button in a card header is the same height, whether it holds a symbol, an icon or a word */
 .section-head button{
   min-width:2.4rem; font-weight:700;
