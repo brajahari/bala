@@ -108,6 +108,8 @@ input[type=url]:focus-visible{outline:2px solid var(--live);outline-offset:2px}
 .live-now{margin:0; font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.85rem; font-weight:500; line-height:1.5; color:var(--fg)}
 .note{margin:.5rem 0 0; font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.75rem; line-height:1.5; color:var(--teal)}
 .note:empty{display:none}
+.live-now a{color:#1E7EB0; font-weight:700; text-decoration:none; font-size:1.15em; padding:0 .2em}
+.live-now a:hover{color:#176591}
 .note .dot{font-size:1.5em; font-weight:700; line-height:0; vertical-align:-.08em}
 .guide-link{margin:.9rem 0 0; font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.8rem}
 .guide-link a{color:#B45309; font-weight:500; text-decoration:underline; text-underline-offset:.2em}
@@ -1177,6 +1179,18 @@ liveStopBtn.addEventListener("click", function(){
    then again when the next track starts (never later than a minute), and not at all while the tab
    is hidden or the reading view is open. */
 var liveNowPlaying = $("liveNowPlaying"), liveNextEl = $("liveNext");
+/* The radio gives only a title, e.g. "SB 6-01-08   New York 1971-07-22   …". Its two-letter code, place
+   and date are the same ones the website uses, so they build the lecture's page on prabhupadavani.org
+   (710722sb-new-york). Titles without a code and date (kīrtans, "CD 03-1 …") get no link.
+   No request is made: the address is worked out from the title, and opens only if tapped. */
+function transcriptionUrl(title){
+  var m = String(title).match(/^([A-Za-z]{2})\s+\S+\s+(.+?)\s+(\d{4})-(\d{2})-(\d{2})\b/i);
+  if (!m) return "";
+  var place = m[2].normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+                  .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  if (!place) return "";
+  return "https://prabhupadavani.org/transcriptions/" + m[3].slice(2) + m[4] + m[5] + m[1].toLowerCase() + "-" + place + "/";
+}
 var liveTimer = null, liveNext = null;
 function liveVisible(){ return !document.hidden && document.body.classList.contains("landing"); }
 function timeFromNow(iso){
@@ -1202,6 +1216,15 @@ function updateLiveInfo(){
     .then(function(r){ return r.json(); })
     .then(function(data){
       liveNowPlaying.textContent = data.current_title ? data.current_title : "Radio currently offline";
+      var tu = transcriptionUrl(data.current_title || "");
+      if (tu){                                  // a small ↗ at the end of the same line
+        var a = document.createElement("a");
+        a.href = tu; a.target = "_blank"; a.rel = "noopener";
+        a.title = "Read the transcription"; a.setAttribute("aria-label", "Read the transcription");
+        a.innerHTML = "&#8599;";
+        liveNowPlaying.appendChild(document.createTextNode(" "));
+        liveNowPlaying.appendChild(a);
+      }
       liveNext = data.next_title ? { title:data.next_title, starts:data.next_starts } : null;
       renderLiveNext();
       /* ask again when the next track starts (+2 s), but at least 5 s and at most 60 s from now */
