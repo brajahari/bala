@@ -169,8 +169,10 @@ input[type=url]:focus-visible{outline:2px solid var(--live);outline-offset:2px}
 .pair .sep{font-weight:400; opacity:.85; line-height:1}
 .section-head .primary:hover{background:#176591; border-color:#176591}
 .foot{display:flex; justify-content:flex-start; align-items:center; gap:.7rem; flex-wrap:wrap; margin-top:1.5rem}
-.contact{margin:0; text-align:left; font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.75rem; color:var(--teal)}
-.contact a{color:inherit; text-decoration:none; border-bottom:1px solid var(--rule)}
+.contact{display:flex; flex-wrap:wrap; align-items:center; gap:.3rem .6rem; font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.75rem; color:var(--teal)}
+.contact-title{margin:0; font-weight:600}
+.contact a{display:inline-flex; align-items:center; gap:.5rem; color:inherit; text-decoration:underline; text-decoration-color:var(--rule); text-underline-offset:.25em}
+.contact a svg{width:1rem; height:1rem; flex:none; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round}
 .contact a:hover{color:var(--fg)}
 /* the notification line is always there, with room for one line, so ordinary messages appearing
    and disappearing never push the cards up and down */
@@ -280,7 +282,10 @@ html:not([data-theme="day"]) .s.cursor{
 
 
 
-    <div class="foot"><p class="contact">Feedback: <a href="mailto:brajahari@gmail.com">brajahari@gmail.com</a> | <a href="https://wa.me/6597626327" target="_blank" rel="noopener">wa.me/6597626327</a></p></div>
+    <div class="foot"><div class="contact">
+      <p class="contact-title">Feedback &amp; Contact me:</p>
+      <a href="mailto:brajahari@gmail.com"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"></rect><polyline points="3 7 12 13 21 7"></polyline></svg> brajahari@gmail.com</a>
+    </div></div>
   </section>
 
   <p class="hint-text" id="readHint">Tap any text, any time, to change the read-position.<br>Change the speed, voice or theme &#9680; from the bar below.<br>Press &larr; to return to the main page. It auto-saves read-position (as %).</p>
