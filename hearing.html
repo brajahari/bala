@@ -914,6 +914,7 @@ function toPaste(){
   textEl.innerHTML = "";
   nodes = []; sentences = []; idx = 0;
   window.scrollTo(0, 0);        // the front page starts at the top, not where the reading left off
+  updateLiveInfo();             // the SP Live card is back: one fresh ask
 }
 
 /* Remember which box the text came from, so Back can write the reading position into it. */
@@ -945,6 +946,7 @@ function present(t, pct){
   document.body.classList.remove("landing");
   render();
   window.scrollTo({ top:0 });
+  clearTimeout(liveTimer);                    // the SP Live card is out of sight: stop asking about it
   jumpPct(pct);
   return true;
 }
@@ -1170,8 +1172,13 @@ liveStopBtn.addEventListener("click", function(){
   stopLive();
 });
 
-/* ─── SP Live: now playing / next track ─── */
+/* ─── SP Live: now playing / next track ───
+   The radio's server can't push updates, so the page asks. It asks when the cards come into view,
+   then again when the next track starts (never later than a minute), and not at all while the tab
+   is hidden or the reading view is open. */
 var liveNowPlaying = $("liveNowPlaying"), liveNextEl = $("liveNext");
+var liveTimer = null, liveNext = null;
+function liveVisible(){ return !document.hidden && document.body.classList.contains("landing"); }
 function timeFromNow(iso){
   var diffMs = new Date(iso + "+00:00").getTime() - Date.now();
   var mins = Math.round(diffMs / 60000);
@@ -1181,19 +1188,39 @@ function timeFromNow(iso){
   var hrs = Math.round(mins / 60);
   return hrs === 1 ? "1 hour from now" : hrs + " hours from now";
 }
+/* the "Next: … (5 minutes from now)" line ticks down on its own, with no request */
+function renderLiveNext(){
+  liveNextEl.textContent = liveNext && liveNext.title
+    ? "Next: " + liveNext.title + " (" + timeFromNow(liveNext.starts) + ")"
+    : "";
+}
+setInterval(function(){ if (liveVisible()) renderLiveNext(); }, 20000);
 function updateLiveInfo(){
+  clearTimeout(liveTimer);
+  if (!liveVisible()) return;                 // paused: ask nothing, schedule nothing
   fetch("https://prabhupada.prabhupadaradio.com/?type=interval&limit=5")
     .then(function(r){ return r.json(); })
     .then(function(data){
       liveNowPlaying.textContent = data.current_title ? data.current_title : "Radio currently offline";
-      liveNextEl.textContent = data.next_title
-        ? "Next: " + data.next_title + " (" + timeFromNow(data.next_starts) + ")"
-        : "";
+      liveNext = data.next_title ? { title:data.next_title, starts:data.next_starts } : null;
+      renderLiveNext();
+      /* ask again when the next track starts (+2 s), but at least 5 s and at most 60 s from now */
+      var wait = 60000;
+      if (data.next_starts){
+        var t = new Date(data.next_starts + "+00:00").getTime() - Date.now() + 2000;
+        wait = Math.max(5000, Math.min(60000, t));
+      }
+      if (liveVisible()) liveTimer = setTimeout(updateLiveInfo, wait);
     })
-    .catch(function(){ /* silently ignore — stream info is a nice-to-have */ });
+    .catch(function(){                         // stream info is a nice-to-have: try again in a minute
+      if (liveVisible()) liveTimer = setTimeout(updateLiveInfo, 60000);
+    });
 }
 updateLiveInfo();
-setInterval(updateLiveInfo, 15000);
+/* back to the page, or back from the reader: ask once so the title is fresh */
+document.addEventListener("visibilitychange", function(){
+  if (liveVisible()) updateLiveInfo(); else clearTimeout(liveTimer);
+});
 
 docUrl.addEventListener("keydown", function(e){
   if (e.key === "Enter"){ e.preventDefault(); loadBtn.click(); }
