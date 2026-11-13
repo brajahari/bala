@@ -540,8 +540,8 @@ function fetchDoc(url, then, onFail, skipRemember){
       then(clean);
     })
     .catch(function(e){
-      /* every failure reads the same: private, missing, empty or unreachable */
-      say("The page doesn't exist.", true);
+      /* every failure reads the same, except the reader service's "too many requests" (HTTP 429) */
+      say(e && e.message === "http-429" ? "Limit reached, try again in a minute." : "The page doesn't exist.", true);
       if (onFail) onFail();
     })
     .then(function(){
@@ -1145,7 +1145,10 @@ function vbStep(delta){
   say("Looking up the " + (delta > 0 ? "next" : "previous") + " page…");
   get(READER + VEDABASE + path, { "X-Return-Format":"html" })
     .then(function(html){ finish(neighbourPath(new DOMParser().parseFromString(html, "text/html"), delta)); })
-    .catch(function(){ finish(""); });
+    .catch(function(e){
+      finish("");
+      if (e && e.message === "http-429") say("Limit reached, try again in a minute.", true);
+    });
 }
 $("vbInc").addEventListener("click", function(){ vbStep(1); });
 $("vbDec").addEventListener("click", function(){ vbStep(-1); });
@@ -1179,18 +1182,6 @@ liveStopBtn.addEventListener("click", function(){
    then again when the next track starts (never later than a minute), and not at all while the tab
    is hidden or the reading view is open. */
 var liveNowPlaying = $("liveNowPlaying"), liveNextEl = $("liveNext");
-/* The radio gives only a title, e.g. "SB 6-01-08   New York 1971-07-22   …". Its two-letter code, place
-   and date are the same ones the website uses, so they build the lecture's page on prabhupadavani.org
-   (710722sb-new-york). Titles without a code and date (kīrtans, "CD 03-1 …") get no link.
-   No request is made: the address is worked out from the title, and opens only if tapped. */
-function transcriptionUrl(title){
-  var m = String(title).match(/^([A-Za-z]{2})\s+\S+\s+(.+?)\s+(\d{4})-(\d{2})-(\d{2})\b/i);
-  if (!m) return "";
-  var place = m[2].normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
-                  .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-  if (!place) return "";
-  return "https://prabhupadavani.org/transcriptions/" + m[3].slice(2) + m[4] + m[5] + m[1].toLowerCase() + "-" + place + "/";
-}
 var liveTimer = null, liveNext = null;
 function liveVisible(){ return !document.hidden && document.body.classList.contains("landing"); }
 function timeFromNow(iso){
@@ -1216,12 +1207,18 @@ function updateLiveInfo(){
     .then(function(r){ return r.json(); })
     .then(function(data){
       liveNowPlaying.textContent = data.current_title ? data.current_title : "Radio currently offline";
-      var tu = transcriptionUrl(data.current_title || "");
-      if (tu){                                  // a small ↗ at the end of the same line
+      /* ↗ at the end of the line: the lecture's date is in the title. The website can't open with a search
+         filled in, but it can open filtered to a year and month, so tapping opens that list and copies the
+         full date, ready to paste into its search box to narrow it to the day. */
+      var d = (data.current_title || "").match(/(\d{4})-(\d{2})-\d{2}/);
+      if (d){
         var a = document.createElement("a");
-        a.href = tu; a.target = "_blank"; a.rel = "noopener";
-        a.title = "Read the transcription"; a.setAttribute("aria-label", "Read the transcription");
+        a.href = "https://prabhupadavani.org/transcriptions/?year=" + d[1] + "&month=" + d[2]; a.target = "_blank"; a.rel = "noopener";
+        a.title = "Find the transcription (copies " + d[0] + ")"; a.setAttribute("aria-label", "Find the transcription");
         a.innerHTML = "&#8599;";
+        a.addEventListener("click", function(){
+          try { navigator.clipboard.writeText(d[0]); } catch(e){}
+        });
         liveNowPlaying.appendChild(document.createTextNode(" "));
         liveNowPlaying.appendChild(a);
       }
