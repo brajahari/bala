@@ -931,11 +931,26 @@ function savePosition(){
   else if (typeof vbSave === "function") vbSave();
   if (box === docUrl) remember("doc", box.value);
 }
-editBtn.addEventListener("click", function(){
+function leaveReader(){
+  backing = false;
   savePosition();
   toPaste();
   say("");                       // no focusing a box here: it would pop the keypad open
+}
+var backing = false;
+editBtn.addEventListener("click", function(){
+  if (history.state && history.state.reader){      // go back through the history, so it stays tidy
+    if (!backing){ backing = true; history.back(); }   // (a quick second tap must not leave the page)
+  } else leaveReader();
 });
+/* phone / browser Back while reading: save the place and return to the cards instead of leaving the page */
+window.addEventListener("popstate", function(){
+  if (!document.body.classList.contains("landing")) leaveReader();
+});
+/* any other way out (closing the tab, switching apps): keep the place in the box */
+function saveIfReading(){ if (!document.body.classList.contains("landing")) savePosition(); }
+window.addEventListener("pagehide", saveIfReading);
+document.addEventListener("visibilitychange", function(){ if (document.hidden) saveIfReading(); });
 
 /* text (from anywhere) → the reading view */
 function present(t, pct){
@@ -949,6 +964,7 @@ function present(t, pct){
   render();
   window.scrollTo({ top:0 });
   clearTimeout(liveTimer);                    // the SP Live card is out of sight: stop asking about it
+  try { history.pushState({ reader:true }, ""); } catch(e){}   // so the phone's Back button returns to the cards
   jumpPct(pct);
   return true;
 }
