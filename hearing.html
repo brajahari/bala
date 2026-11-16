@@ -218,6 +218,12 @@ html:not([data-theme="day"]) .s.cursor{
 }
 
 .hidden{display:none}
+/* the little "date copied" message */
+.modal{position:fixed; inset:0; z-index:50; display:flex; align-items:center; justify-content:center; padding:1rem; background:rgba(0,0,0,.45)}
+.modal.hidden{display:none}
+.modal-box{max-width:20rem; padding:1.1rem 1.2rem; background:var(--bg); color:var(--fg); border:1px solid var(--rule); border-radius:8px; box-shadow:0 .6rem 1.8rem rgba(0,0,0,.3)}
+.modal-box p{margin:0 0 1rem; font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.85rem; line-height:1.55}
+.modal-box button{width:100%; height:2.4rem; background:#1E7EB0; border-color:#1E7EB0; color:#fff; font-weight:700}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 @media(max-width:520px){
   body{font-size:18px}
@@ -309,6 +315,13 @@ html:not([data-theme="day"]) .s.cursor{
       <select id="voice" aria-label="Voice"></select>
       <button id="theme" title="Light or dark" aria-label="Light or dark"><svg class="icon-tts" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"></path></svg></button>
     </div>
+  </div>
+</div>
+
+<div id="copyNote" class="modal hidden" role="dialog" aria-modal="true">
+  <div class="modal-box">
+    <p id="copyNoteText"></p>
+    <button id="copyNoteOk" type="button">Open search page</button>
   </div>
 </div>
 
@@ -1198,6 +1211,8 @@ liveStopBtn.addEventListener("click", function(){
    then again when the next track starts (never later than a minute), and not at all while the tab
    is hidden or the reading view is open. */
 var liveNowPlaying = $("liveNowPlaying"), liveNextEl = $("liveNext");
+var copyNote = $("copyNote"), copyNoteText = $("copyNoteText"), copyNoteOk = $("copyNoteOk");
+copyNote.addEventListener("click", function(e){ if (e.target === copyNote) copyNote.classList.add("hidden"); });   // tap outside to cancel
 var liveTimer = null, liveNext = null;
 function liveVisible(){ return !document.hidden && document.body.classList.contains("landing"); }
 function timeFromNow(iso){
@@ -1224,16 +1239,21 @@ function updateLiveInfo(){
     .then(function(data){
       liveNowPlaying.textContent = data.current_title ? data.current_title : "Radio currently offline";
       /* ↗ at the end of the line: the lecture's date is in the title. The website can't open with a search
-         filled in, but it can open filtered to a year and month, so tapping opens that list and copies the
-         full date, ready to paste into its search box to narrow it to the day. */
-      var d = (data.current_title || "").match(/(\d{4})-(\d{2})-\d{2}/);
+         filled in, so tapping copies the date, says so, and then opens its transcriptions page. */
+      var d = (data.current_title || "").match(/\d{4}-\d{2}-\d{2}/);
       if (d){
         var a = document.createElement("a");
-        a.href = "https://prabhupadavani.org/transcriptions/?year=" + d[1] + "&month=" + d[2]; a.target = "_blank"; a.rel = "noopener";
+        a.href = "https://prabhupadavani.org/transcriptions/"; a.target = "_blank"; a.rel = "noopener";
         a.title = "Find the transcription (copies " + d[0] + ")"; a.setAttribute("aria-label", "Find the transcription");
         a.innerHTML = "&#8599;";
-        a.addEventListener("click", function(){
-          try { navigator.clipboard.writeText(d[0]); } catch(e){}
+        a.addEventListener("click", function(e){
+          var pr;
+          try { pr = navigator.clipboard.writeText(d[0]); } catch(err){ return; }   // can't copy: just open the page
+          if (pr && pr.catch) pr.catch(function(){});
+          e.preventDefault();
+          copyNoteText.textContent = "Date " + d[0] + " is copied. On the search page that opens, paste it into the search box.";
+          copyNoteOk.onclick = function(){ copyNote.classList.add("hidden"); window.open(a.href, "_blank", "noopener"); };
+          copyNote.classList.remove("hidden");
         });
         liveNowPlaying.appendChild(document.createTextNode(" "));
         liveNowPlaying.appendChild(a);
