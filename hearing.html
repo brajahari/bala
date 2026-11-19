@@ -206,9 +206,10 @@ body.landing .section{
 
 /* reading view */
 #text{margin-top:1.2rem;margin-bottom:1.5rem;overflow-x:hidden}
-/* reading text: the same sizes as vedabase.io's default (22px, and 18px on screens under 420px wide) */
-#text{font-size:22px}
-@media(max-width:419px){#text{font-size:18px}}
+/* reading text: vedabase.io uses 22px (18px on screens under 420px wide) in Noto Serif, which looks bigger
+   than Gentium Book Plus at the same size, so this is scaled up about 10% to look the same */
+#text{font-size:24px}
+@media(max-width:419px){#text{font-size:20px}}
 #text p{margin:0 0 1.4rem;word-break:break-word;overflow-wrap:break-word}
 .s{transition:opacity .3s ease;cursor:text;border-radius:2px;display:inline;word-break:break-word}
 body.idle .s{opacity:1}
