@@ -111,11 +111,9 @@ input[type=url]:focus-visible{outline:2px solid var(--live);outline-offset:2px}
 .live-now a{color:#1E7EB0; font-weight:700; text-decoration:none; font-size:1.15em; padding:0 .2em}
 .live-now a:hover{color:#176591}
 .note .dot{font-size:1.5em; font-weight:700; line-height:0; vertical-align:-.08em}
-/* the top line: notifications on the left, the guide link on the right, so the link is the first thing seen */
-.topline{display:flex; align-items:flex-start; gap:.8rem; margin:0 0 .6rem; min-height:1.4rem}
-.guide-link{flex:none; margin-left:auto; font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.8rem; font-weight:700;
-  color:#1E7EB0; text-decoration:none; white-space:nowrap; padding:.1rem .1rem}
-.guide-link:hover{text-decoration:underline}
+.guide-link{margin:.9rem 0 0; font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.8rem}
+.guide-link a{color:#1E7EB0; font-weight:700; text-decoration:none}
+.guide-link a:hover{text-decoration:underline}
 .note.remark{color:#B45309; font-size:.8rem}
 .vbnote{margin-top:.9rem; padding-left:1.1rem}
 .vbnote li+li{margin-top:.15rem}
@@ -181,7 +179,7 @@ input[type=url]:focus-visible{outline:2px solid var(--live);outline-offset:2px}
 .contact a:hover{color:var(--fg)}
 /* the notification line is always there, with room for one line, so ordinary messages appearing
    and disappearing never push the cards up and down */
-#status{margin:0; flex:1; min-width:0}
+#status{margin:0 0 .6rem; min-height:1.4rem}
 /* same highlighter look as the current sentence: amber tint, normal text colour, amber bar */
 #readHint{
   margin:1.5rem 0 0; padding:.7rem .9rem; border-radius:4px;
@@ -248,10 +246,7 @@ html:not([data-theme="day"]) .s.cursor{
 <div class="wrap">
 
   <section id="pasteView">
-    <div class="topline">
-      <p class="status" id="status" role="status" aria-live="polite"></p>
-      <a class="guide-link" href="guide.html">&#9432; User guide</a>
-    </div>
+    <p class="status" id="status" role="status" aria-live="polite"></p>
     <div class="section">
       <div class="section-head">
         <p class="section-title tight">Vedabase</p>
@@ -272,6 +267,7 @@ html:not([data-theme="day"]) .s.cursor{
         <label><input type="radio" name="vbPick"><input type="text" class="vbbox" value="" spellcheck="false" autocomplete="off"></label>
         <label class="vbsp"><input type="radio" name="vbPick" id="vbSpRadio"><input type="text" class="vbbox" value="Daily SP" readonly></label>
       </div>
+      <p class="guide-link"><a href="guide.html">&#9432; User guide: a 1-minute read.</a></p>
     </div>
     <div class="section">
       <div class="section-head">
