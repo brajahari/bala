@@ -111,8 +111,11 @@ input[type=url]:focus-visible{outline:2px solid var(--live);outline-offset:2px}
 .live-now a{color:#1E7EB0; font-weight:700; text-decoration:none; font-size:1.15em; padding:0 .2em}
 .live-now a:hover{color:#176591}
 .note .dot{font-size:1.5em; font-weight:700; line-height:0; vertical-align:-.08em}
-.guide-link{margin:.9rem 0 0; font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.8rem}
-.guide-link a{color:#B45309; font-weight:500; text-decoration:underline; text-underline-offset:.2em}
+/* the top line: notifications on the left, the guide link on the right, so the link is the first thing seen */
+.topline{display:flex; align-items:flex-start; gap:.8rem; margin:0 0 .6rem; min-height:1.4rem}
+.guide-link{flex:none; margin-left:auto; font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.8rem; font-weight:700;
+  color:#1E7EB0; text-decoration:none; white-space:nowrap; padding:.1rem .1rem}
+.guide-link:hover{text-decoration:underline}
 .note.remark{color:#B45309; font-size:.8rem}
 .vbnote{margin-top:.9rem; padding-left:1.1rem}
 .vbnote li+li{margin-top:.15rem}
@@ -178,13 +181,20 @@ input[type=url]:focus-visible{outline:2px solid var(--live);outline-offset:2px}
 .contact a:hover{color:var(--fg)}
 /* the notification line is always there, with room for one line, so ordinary messages appearing
    and disappearing never push the cards up and down */
-#status{margin:0 0 .6rem; min-height:1.4rem}
+#status{margin:0; flex:1; min-width:0}
 /* same highlighter look as the current sentence: amber tint, normal text colour, amber bar */
 #readHint{
   margin:1.5rem 0 0; padding:.7rem .9rem; border-radius:4px;
   background:rgba(var(--hl-rgb),.2); border-left:3px solid var(--live); color:var(--fg);
 }
 body.landing #readHint{display:none}
+/* the buttons named in the hint stand out, in the theme's blue */
+.key{font-weight:700; color:var(--accent); background:rgba(var(--accent-rgb),.14); border:1px solid rgba(var(--accent-rgb),.45);
+  border-radius:3px; padding:.05em .4em; white-space:nowrap}
+/* the word "highlighted" is itself highlighted, the same way the sentence is */
+.hl{background:rgba(var(--hl-rgb),.4); border-radius:2px; padding:0 .2em; font-weight:700}
+html:not([data-theme="day"]) .hl{color:var(--live); background:rgba(var(--hl-rgb),.2)}
+.key-arrow{display:inline-block; font-size:1.5em; font-weight:900; line-height:1; padding:0 .3em; vertical-align:-.1em}   /* inline-block: the box is only one line tall */
 .hint-text{font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.82rem; line-height:1.65; opacity:1}
 .section{
   padding:1rem; border:1px solid var(--rule); border-radius:3px;
@@ -198,6 +208,9 @@ body.landing .section{
 
 /* reading view */
 #text{margin-top:1.2rem;margin-bottom:1.5rem;overflow-x:hidden}
+/* reading text: the same sizes as vedabase.io's default (22px, and 18px on screens under 420px wide) */
+#text{font-size:22px}
+@media(max-width:419px){#text{font-size:18px}}
 #text p{margin:0 0 1.4rem;word-break:break-word;overflow-wrap:break-word}
 .s{transition:opacity .3s ease;cursor:text;border-radius:2px;display:inline;word-break:break-word}
 body.idle .s{opacity:1}
@@ -235,7 +248,10 @@ html:not([data-theme="day"]) .s.cursor{
 <div class="wrap">
 
   <section id="pasteView">
-    <p class="status" id="status" role="status" aria-live="polite"></p>
+    <div class="topline">
+      <p class="status" id="status" role="status" aria-live="polite"></p>
+      <a class="guide-link" href="guide.html">&#9432; User guide</a>
+    </div>
     <div class="section">
       <div class="section-head">
         <p class="section-title tight">Vedabase</p>
@@ -256,7 +272,6 @@ html:not([data-theme="day"]) .s.cursor{
         <label><input type="radio" name="vbPick"><input type="text" class="vbbox" value="" spellcheck="false" autocomplete="off"></label>
         <label class="vbsp"><input type="radio" name="vbPick" id="vbSpRadio"><input type="text" class="vbbox" value="Daily SP" readonly></label>
       </div>
-      <p class="guide-link"><a href="guide.html">&#9432; User guide</a></p>
     </div>
     <div class="section">
       <div class="section-head">
@@ -296,7 +311,7 @@ html:not([data-theme="day"]) .s.cursor{
     </div></div>
   </section>
 
-  <p class="hint-text" id="readHint">Tap any text, any time, to change the read-position.<br>Change the speed, voice or theme &#9680; from the bar below.<br>Press &larr; to return to the main page. It auto-saves read-position (as %).</p>
+  <p class="hint-text" id="readHint">Press <span class="key">&#9654; HEAR</span> to start hearing.<br>Tap any text to set the read/hear position (<span class="hl">highlighted</span>).<br>Press <span class="key key-arrow">&larr;</span> to return to the main page. It auto-saves the <span class="hl">highlighted</span> position as %.<br>Adjust the speed, voice or theme &#9680; from the bar below.</p>
   <article id="text"></article>
 
   <div class="bar hidden" id="bar">
