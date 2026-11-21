@@ -752,13 +752,14 @@ else synth.onvoiceschanged = loadVoices;
    and stay quiet — otherwise each one advances a sentence and the whole thing
    runs away down the page. */
 var gen = 0, lastKick = 0, retries = 0;
+var curUtter = null;          // keep a reference: Chrome can discard a speaking utterance, and then its "end" never fires
 
 /* Android's speech engine differs enough to need its own handling. */
 var MOBILE = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "");
 
-function speak(i){
+function speak(i, soft){
   var mine = ++gen;
-  synth.cancel();
+  if (!soft || MOBILE) synth.cancel();   // moving on after a sentence finished needs no cancel; desktop Chrome can drop what is queued right after one
   if (i >= sentences.length){          // ran off the end — cursor rests on the last line
     stop();
     idx = sentences.length-1;
@@ -771,6 +772,7 @@ function speak(i){
   var v = voices[Number(voiceSel.value)];
   if (v){ u.voice = v; u.lang = v.lang; }
   u.rate = Number(rate.value);
+  curUtter = u;
   u.onstart = function(){ if (mine === gen) retries = 0; };
   function advance(){
     if (!playing || mine !== gen) return;
@@ -781,7 +783,7 @@ function speak(i){
        Desktop keeps speaking in background tabs, so this only applies to phones. */
     if (MOBILE && document.hidden) return;
     retries = 0;
-    speak(idx+1);
+    speak(idx+1, true);
   }
   u.onend = advance;
   u.onerror = advance;
@@ -798,7 +800,8 @@ function speak(i){
    Poll for that silence and pick the reading back up. */
 function watch(){
   if (!playing || document.hidden || dragging) return;
-  if (synth.speaking || synth.pending || synth.paused) return;
+  if (synth.paused && !MOBILE) synth.resume();    // a stuck pause: the desktop keep-alive trick can leave one behind
+  if (synth.speaking || synth.pending) return;
   if (Date.now() - lastKick < 3000) return;      // a slow engine is still waking up
   if (retries++ < 2) speak(idx);                 // retry this sentence
   else { retries = 0; speak(idx+1); }            // it refuses — move on
@@ -831,12 +834,14 @@ function start(from){
   document.body.classList.remove("idle");
   setPlayIcon(true);
   clearInterval(keepAlive);
+  var tick = 0;
   keepAlive = setInterval(function(){
-    /* The pause/resume trick keeps desktop Chrome from cutting out at ~15s.
+    tick++;
+    /* The pause/resume trick keeps desktop Chrome from cutting out at ~15s (every third check, ~9s).
        On Android it does the opposite — pause() there is a one-way door. */
-    if (!MOBILE && synth.speaking && !synth.paused){ synth.pause(); synth.resume(); }
-    watch();
-  }, MOBILE ? 1200 : 9000);
+    if (!MOBILE && tick % 3 === 0 && synth.speaking && !synth.paused){ synth.pause(); synth.resume(); }
+    watch();                                      // and check for silence every 3 s on desktop (was 9 s)
+  }, MOBILE ? 1200 : 3000);
   speak(idx);
 }
 
